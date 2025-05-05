@@ -2,29 +2,64 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Selected Names Display</title>
+  <title>Equipment Issue Page</title>
   <style>
     body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #121212;
       color: #ffffff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      padding: 40px;
+      padding: 20px;
       text-align: center;
     }
-    p {
-      font-size: 18px;
-      margin: 10px 0;
-    }
-    input {
-      margin: 5px;
-      padding: 6px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
       background-color: #1e1e1e;
+    }
+    th, td {
+      border: 1px solid #333;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #2c2c2c;
+      position: sticky;
+      top: 0;
+    }
+    input[type="text"] {
+      padding: 6px;
+      background-color: #2a2a2a;
+      border: 1px solid #555;
+      color: #fff;
+      border-radius: 4px;
+      margin: 2px;
+    }
+    select {
+      background-color: #2a2a2a;
       color: #fff;
       border: 1px solid #555;
       border-radius: 4px;
+      padding: 6px;
     }
-    input:invalid {
-      border-color: #c62828;
+    .green {
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+    }
+    .red {
+      background-color: #c62828;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+    }
+    .status-box {
+      margin-top: 20px;
+      text-align: left;
+      padding-left: 20px;
     }
     #signatureModal {
       display: none;
@@ -69,16 +104,17 @@
   <div id="nameList"></div>
   <button onclick="openSignature()">Signature</button>
 
-  <div>
-    <h3>MCN Serial (7 digits)</h3>
-    <input type="text" id="mcnInput" pattern="\\d{7}" placeholder="e.g. 1234567" required>
-
-    <h3>Battery (e.g. KH123)</h3>
-    <input type="text" id="batteryInput" pattern="KH\\d{3}" placeholder="e.g. KH123" required>
-
-    <h3>Pump Mic (01 to 52)</h3>
-    <input type="text" id="pumpInput" pattern="0[1-9]|[1-4][0-9]|5[0-2]" placeholder="e.g. 01" required>
-  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>MCN Serial</th>
+        <th>Battery</th>
+        <th>Pump Mic</th>
+      </tr>
+    </thead>
+    <tbody id="dataTable"></tbody>
+  </table>
 
   <div id="overlay"></div>
   <div id="signatureModal">
@@ -90,11 +126,41 @@
   <script>
     const selectedNames = JSON.parse(localStorage.getItem("selectedNames") || "[]");
     const nameList = document.getElementById("nameList");
+    const tableBody = document.getElementById("dataTable");
 
     selectedNames.forEach(name => {
-      const p = document.createElement("p");
-      p.textContent = name;
-      nameList.appendChild(p);
+      const row = document.createElement("tr");
+      const nameCell = document.createElement("td");
+      nameCell.textContent = name;
+
+      const mcnInput = document.createElement("input");
+      mcnInput.type = "text";
+      mcnInput.pattern = "\\d{7}";
+      mcnInput.placeholder = "1234567";
+
+      const batteryInput = document.createElement("input");
+      batteryInput.type = "text";
+      batteryInput.pattern = "KH\\d{3}";
+      batteryInput.placeholder = "KH123";
+
+      const pumpInput = document.createElement("input");
+      pumpInput.type = "text";
+      pumpInput.pattern = "0[1-9]|[1-4][0-9]|5[0-2]";
+      pumpInput.placeholder = "01";
+
+      const mcnCell = document.createElement("td");
+      const batteryCell = document.createElement("td");
+      const pumpCell = document.createElement("td");
+
+      mcnCell.appendChild(mcnInput);
+      batteryCell.appendChild(batteryInput);
+      pumpCell.appendChild(pumpInput);
+
+      row.appendChild(nameCell);
+      row.appendChild(mcnCell);
+      row.appendChild(batteryCell);
+      row.appendChild(pumpCell);
+      tableBody.appendChild(row);
     });
 
     function openSignature() {
@@ -125,7 +191,6 @@
       ctx.lineWidth = 2;
       ctx.lineCap = "round";
       ctx.strokeStyle = "black";
-
       ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
       ctx.stroke();
       ctx.beginPath();
