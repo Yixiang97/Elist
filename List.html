@@ -92,47 +92,51 @@
       background-color: #2a2a2a !important;
       opacity: 0.6;
     }
+
+    .signature-img-container img {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-top: 5px;
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
+  <div id="pdfContent">
+    <h2>Equipment Issuance Summary</h2>
+    <table id="issueTable">
+      <thead>
+        <tr>
+          <th>No.</th>
+          <th>Name</th>
+          <th>MCN (Qty)</th>
+          <th>Battery</th>
+          <th>Pump Mic</th>
+          <th>Status</th>
+          <th>Signature</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
 
-<div id="pdfContent">
-  <h2>Equipment Issuance Summary</h2>
-  <table id="issueTable">
-    <thead>
-      <tr>
-        <th>No.</th>
-        <th>Name</th>
-        <th>MCN (Qty)</th>
-        <th>Battery</th>
-        <th>Pump Mic</th>
-        <th>Status</th>
-        <th>Signature</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-  </table>
-
-  <div class="status-box" id="statusBox">
-    <h3>Issuance Status</h3>
-    <div id="issuedStatus"></div>
-    <p id="remainingCount"></p>
+    <div class="status-box" id="statusBox">
+      <h3>Issuance Status</h3>
+      <div id="issuedStatus"></div>
+      <p id="remainingCount"></p>
+    </div>
   </div>
-</div>
 
-<button id="exportBtn" class="green" onclick="exportToPDF()" disabled>Export to PDF</button>
+  <button id="exportBtn" class="green" onclick="exportToPDF()" disabled>Export to PDF</button>
 
-<!-- Signature Modal -->
-<div id="signatureModal">
-  <h3>Sign Here</h3>
-  <canvas id="modalCanvas" width="300" height="100" style="background:#fff; border:1px solid #ccc;"></canvas><br>
-  <button id="saveSignature" class="green">Save</button>
-  <button onclick="closeModal()" class="red">Cancel</button>
-</div>
-<div id="overlay"></div>
+  <div id="signatureModal">
+    <h3>Sign Here</h3>
+    <canvas id="modalCanvas" width="300" height="100" style="background:#fff; border:1px solid #ccc;"></canvas><br>
+    <button id="saveSignature" class="green">Save</button>
+    <button onclick="closeModal()" class="red">Cancel</button>
+  </div>
+  <div id="overlay"></div>
 
-<script>
+ <script>
 const selectedNames = JSON.parse(localStorage.getItem("selectedNames") || "[]");
 const tableBody = document.getElementById("tableBody");
 const signatureData = {};
@@ -375,5 +379,6 @@ function updateStatus() {
 // Initial render
 renderTable();
 </script>
+
 </body>
 </html>
