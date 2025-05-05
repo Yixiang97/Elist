@@ -91,7 +91,14 @@
   </div>
 
   <script>
-    const selectedNames = JSON.parse(localStorage.getItem("selectedNames") || "[]");
+    // Ensure names are retrieved from localStorage
+    let selectedNames = [];
+    try {
+      selectedNames = JSON.parse(localStorage.getItem("selectedNames")) || [];
+    } catch (e) {
+      alert("Failed to load selected names. Please go back and select names again.");
+    }
+
     const tableBody = document.getElementById("tableBody");
 
     function createInputBoxes(count, rowIdx, type) {
@@ -102,6 +109,13 @@
         input.dataset.row = rowIdx;
         input.dataset.type = type;
         input.addEventListener("input", checkRowFilled);
+        input.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            const inputs = Array.from(container.querySelectorAll('input'));
+            const nextInput = inputs[i + 1];
+            if (nextInput) nextInput.focus();
+          }
+        });
         container.appendChild(input);
       }
       return container;
@@ -145,7 +159,7 @@
       issuedStatus.innerHTML = "";
       selectedNames.forEach((name, idx) => {
         const btn = document.getElementById(`issuedBtn-${idx}`);
-        const isIssued = btn.textContent === "Not Issued";
+        const isIssued = btn && btn.textContent === "Not Issued";
         if (isIssued) issued++;
         issuedStatus.innerHTML += `<p>${name}: ${isIssued ? "✅ Issued" : "❌ Not Issued"}</p>`;
       });
@@ -153,9 +167,13 @@
     }
 
     function renderTable() {
+      if (!selectedNames.length) {
+        tableBody.innerHTML = '<tr><td colspan="7">No names were selected. Please return to the first page.</td></tr>';
+        return;
+      }
       tableBody.innerHTML = "";
       selectedNames.forEach((name, idx) => {
-        const mcnQty = 1; // You can set this dynamically later
+        const mcnQty = 1;
         const row = document.createElement("tr");
 
         row.innerHTML = `
@@ -168,7 +186,6 @@
           <td><input type="text" id="signature-${idx}" placeholder="Sign here" disabled></td>
         `;
 
-        // Create MCN, Battery, Pump Mic input boxes
         row.children[2].appendChild(createInputBoxes(mcnQty, idx, 'mcn'));
         row.children[3].appendChild(createInputBoxes(mcnQty, idx, 'battery'));
         row.children[4].appendChild(createInputBoxes(mcnQty, idx, 'pump'));
