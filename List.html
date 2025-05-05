@@ -134,14 +134,22 @@
     input.dataset.row = rowIdx;
     input.dataset.type = type;
 
-    input.addEventListener("input", (e) => {
-      checkRowFilled.call(e.target);
-      if (e.target.value.trim()) {
-        const inputs = [...container.querySelectorAll('input')];
-        const nextInput = inputs[i + 1];
-        if (nextInput) nextInput.focus();
-      }
-    });
+   input.addEventListener("input", (e) => {
+  checkRowFilled.call(e.target);
+
+  const value = e.target.value.trim();
+  let expectedLength = 0;
+
+  if (type === "mcn") expectedLength = 7;
+  else if (type === "battery" || type === "pump") expectedLength = 5; // 'KH' + 3 digits
+
+  if (value.length === expectedLength) {
+    const inputs = [...container.querySelectorAll('input')];
+    const nextInput = inputs[i + 1];
+    if (nextInput) nextInput.focus();
+  }
+});
+
 
     container.appendChild(input);
   }
