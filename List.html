@@ -216,38 +216,39 @@ function toggleIssued(rowIdx, isIssued) {
   const row = document.getElementById(`row-${rowIdx}`);
   const rowInputs = document.querySelectorAll(`[data-row='${rowIdx}']`);
   const issuedBtn = document.getElementById(`issuedBtn-${rowIdx}`);
+
   if (isIssued) {
     rowInputs.forEach(input => input.disabled = true);
     row.classList.add("locked-row");
-    issuedBtn.textContent = "Not Issued";
+    issuedBtn.innerHTML = "✏️ Edit";
+    issuedBtn.title = "Click to make amendments";
     issuedBtn.className = "red";
   } else {
     rowInputs.forEach(input => input.disabled = false);
     row.classList.remove("locked-row");
-    issuedBtn.textContent = "Issued";
-    const sigStatusCell = document.querySelector(`#row-${rowIdx} .signature-status`);
-if (sigStatusCell) {
-  sigStatusCell.innerHTML = `
-    <button class="green" onclick="openSignatureModal(${rowIdx})">Sign</button>
-    <div class="signature-img-container" style="margin-top: 5px;"></div>
-  `;
-}
-
-// Clear signature data
-delete signatureData[rowIdx];
-
-// Also clear from PDF content if exists
-const pdfSigCell = document.querySelector(`#pdfContent #row-${rowIdx} .signature-status`);
-if (pdfSigCell) {
-  pdfSigCell.innerHTML = `
-    <button class="green" onclick="openSignatureModal(${rowIdx})">Sign</button>
-    <div class="signature-img-container" style="margin-top: 5px;"></div>
-  `;
-}
-
+    issuedBtn.innerHTML = "Issued";
+    issuedBtn.title = "";
     issuedBtn.className = "green";
     issuedBtn.disabled = true;
+
+    const sigStatusCell = document.querySelector(`#row-${rowIdx} .signature-status`);
+    if (sigStatusCell) {
+      sigStatusCell.innerHTML = `
+        <button class="green" onclick="openSignatureModal(${rowIdx})">Sign</button>
+        <div class="signature-img-container" style="margin-top: 5px;"></div>
+      `;
+    }
+
+    delete signatureData[rowIdx];
+
+    const pdfSigCell = document.querySelector(`#pdfContent #row-${rowIdx} .signature-status`);
+    if (pdfSigCell) {
+      pdfSigCell.innerHTML = `
+        <div class="signature-img-container" style="margin-top: 5px;"></div>
+      `;
+    }
   }
+
   updateStatus();
 }
 
