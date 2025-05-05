@@ -11,23 +11,32 @@
       padding: 20px;
       text-align: center;
     }
+
+    h2 {
+      font-size: 26px;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
       background-color: #1e1e1e;
     }
+
     th, td {
       border: 1px solid #333;
       padding: 10px;
       text-align: center;
+      vertical-align: top;
     }
+
     th {
       background-color: #2c2c2c;
       position: sticky;
       top: 0;
     }
-    input[type="text"], select {
+
+    input[type="text"] {
       padding: 6px;
       background-color: #2a2a2a;
       border: 1px solid #555;
@@ -35,6 +44,15 @@
       border-radius: 4px;
       margin: 2px;
     }
+
+    select {
+      background-color: #2a2a2a;
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 4px;
+      padding: 6px;
+    }
+
     .green {
       background-color: #2e7d32;
       color: white;
@@ -42,6 +60,7 @@
       padding: 6px 10px;
       border-radius: 4px;
     }
+
     .red {
       background-color: #c62828;
       color: white;
@@ -49,178 +68,193 @@
       padding: 6px 10px;
       border-radius: 4px;
     }
+
     .status-box {
       margin-top: 20px;
       text-align: left;
       padding-left: 20px;
     }
-    .signature-btn {
-      padding: 5px 10px;
-      background-color: #4caf50;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
+
     canvas {
-      background: #f0f0f0;
+      background-color: #fff;
       border: 1px solid #ccc;
       border-radius: 4px;
-      display: block;
-      margin-top: 10px;
-    }
-    #submitBtn {
-      margin-top: 30px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #1976d2;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h2>Equipment Issuance</h2>
-  <table>
+  <h2>Equipment Issuance Summary</h2>
+
+  <table id="issueTable">
     <thead>
       <tr>
+        <th>No.</th>
         <th>Name</th>
-        <th>MCN Qty</th>
-        <th>MCN Serial</th>
+        <th>MCN (Qty)</th>
         <th>Battery</th>
         <th>Pump Mic</th>
+        <th>Status</th>
         <th>Signature</th>
       </tr>
     </thead>
-    <tbody id="dataTable"></tbody>
+    <tbody id="tableBody"></tbody>
   </table>
 
-  <button id="submitBtn">Submit All & Generate PDF</button>
+  <div class="status-box" id="statusBox">
+    <h3>Issuance Status</h3>
+    <div id="issuedStatus"></div>
+    <p id="remainingCount"></p>
+  </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    const selectedNames = JSON.parse(localStorage.getItem("selectedNames") || "[]");
-    const tableBody = document.getElementById("dataTable");
+   const selectedNames = JSON.parse(localStorage.getItem("selectedNames") || "[]");
+    selectedNames.forEach(name => {
+      document.body.innerHTML += `<p>${name}</p>`;
+    });;
 
-    selectedNames.forEach((name, index) => {
-      const row = document.createElement("tr");
+    const tableBody = document.getElementById("tableBody");
 
-      const nameCell = document.createElement("td");
-      nameCell.textContent = name;
-
-      const qtyCell = document.createElement("td");
-      const qtySelect = document.createElement("select");
-      [0, 1, 2].forEach(val => {
-        const option = document.createElement("option");
-        option.value = val;
-        option.textContent = val;
-        qtySelect.appendChild(option);
-      });
-      qtyCell.appendChild(qtySelect);
-
-      const mcnCell = document.createElement("td");
-      const batteryCell = document.createElement("td");
-      const pumpCell = document.createElement("td");
-
-      const signatureCell = document.createElement("td");
-      const signButton = document.createElement("button");
-      signButton.textContent = "Sign";
-      signButton.className = "signature-btn";
-      const signCanvas = document.createElement("canvas");
-      signCanvas.width = 150;
-      signCanvas.height = 50;
-      signCanvas.style.display = "none";
-
-      signatureCell.appendChild(signButton);
-      signatureCell.appendChild(signCanvas);
-
-      function setupSignatureCanvas(canvas) {
-        const ctx = canvas.getContext("2d");
-        let drawing = false;
-        canvas.addEventListener("mousedown", () => drawing = true);
-        canvas.addEventListener("mouseup", () => {
-          drawing = false;
-          ctx.beginPath();
+    function createInputBoxes(count, rowIdx, type) {
+      const container = document.createElement("div");
+      container.className = type + "-container";
+      for (let i = 0; i < count; i++) {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = `Scan ${type} ${i + 1}`;
+        input.dataset.row = rowIdx;
+        input.dataset.type = type;
+        input.addEventListener("input", (e) => {
+          checkRowFilled.call(e.target);
+          if (e.target.value.trim()) {
+            const inputs = [...container.querySelectorAll('input')];
+            const nextInput = inputs[i + 1];
+            if (nextInput) nextInput.focus();
+          }
         });
-        canvas.addEventListener("mouseout", () => drawing = false);
-        canvas.addEventListener("mousemove", (e) => {
-          if (!drawing) return;
-          const rect = canvas.getBoundingClientRect();
-          ctx.lineWidth = 2;
-          ctx.lineCap = "round";
-          ctx.strokeStyle = "black";
-          ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-        });
+        container.appendChild(input);
       }
+      return container;
+    }
 
-      setupSignatureCanvas(signCanvas);
-
-      signButton.onclick = () => {
-        signCanvas.style.display = signCanvas.style.display === "block" ? "none" : "block";
-      };
-
-      qtySelect.addEventListener("change", () => {
-        const count = parseInt(qtySelect.value);
-        mcnCell.innerHTML = "";
-        batteryCell.innerHTML = "";
-        pumpCell.innerHTML = "";
-
-        for (let i = 0; i < count; i++) {
-          const mcnInput = document.createElement("input");
-          mcnInput.type = "text";
-          mcnInput.pattern = "\\d{7}";
-          mcnInput.placeholder = "1234567";
-          mcnCell.appendChild(mcnInput);
-
-          const batteryInput = document.createElement("input");
-          batteryInput.type = "text";
-          batteryInput.pattern = "KH\\d{3}";
-          batteryInput.placeholder = "KH123";
-          batteryCell.appendChild(batteryInput);
-
-          const pumpInput = document.createElement("input");
-          pumpInput.type = "text";
-          pumpInput.pattern = "0[1-9]|[1-4][0-9]|5[0-2]";
-          pumpInput.placeholder = "01";
-          pumpCell.appendChild(pumpInput);
-        }
+    function checkRowFilled() {
+      const rowIdx = this.dataset.row;
+      const rowInputs = document.querySelectorAll(`[data-row='${rowIdx}']`);
+      const issuedBtn = document.getElementById(`issuedBtn-${rowIdx}`);
+      let allFilled = true;
+      rowInputs.forEach(input => {
+        if (!input.value.trim()) allFilled = false;
       });
+      issuedBtn.disabled = !allFilled;
+    }
 
-      row.appendChild(nameCell);
-      row.appendChild(qtyCell);
-      row.appendChild(mcnCell);
-      row.appendChild(batteryCell);
-      row.appendChild(pumpCell);
-      row.appendChild(signatureCell);
-      tableBody.appendChild(row);
-    });
+    function toggleIssued(rowIdx, isIssued) {
+      const rowInputs = document.querySelectorAll(`[data-row='${rowIdx}']`);
+      const canvas = document.getElementById(`signature-${rowIdx}`);
+      const issuedBtn = document.getElementById(`issuedBtn-${rowIdx}`);
 
-    document.getElementById("submitBtn").addEventListener("click", () => {
-      const {{ jsPDF }} = window.jspdf;
-      const doc = new jsPDF();
-      doc.text("Equipment Issuance Summary", 10, 10);
+      if (isIssued) {
+        rowInputs.forEach(input => input.disabled = true);
+        canvas.style.pointerEvents = "auto";
+        issuedBtn.textContent = "Not Issued";
+        issuedBtn.className = "red";
+      } else {
+        rowInputs.forEach(input => input.disabled = false);
+        canvas.style.pointerEvents = "none";
+        issuedBtn.textContent = "Issued";
+        issuedBtn.className = "green";
+        issuedBtn.disabled = true;
+      }
+      updateStatus();
+    }
 
-      const rows = document.querySelectorAll("#dataTable tr");
-      let y = 20;
-
-      rows.forEach((row, idx) => {
-        const cells = row.querySelectorAll("td");
-        const name = cells[0]?.innerText;
-        const qty = cells[1]?.querySelector("select").value;
-        const mcn = [...cells[2]?.querySelectorAll("input")].map(el => el.value).join(", ");
-        const bat = [...cells[3]?.querySelectorAll("input")].map(el => el.value).join(", ");
-        const pump = [...cells[4]?.querySelectorAll("input")].map(el => el.value).join(", ");
-        doc.text(`${idx + 1}. ${name} | MCN: ${mcn} | Battery: ${bat} | Pump: ${pump}`, 10, y);
-        y += 10;
+    function setupSignatureCanvas(canvas) {
+      const ctx = canvas.getContext("2d");
+      let drawing = false;
+      canvas.addEventListener("mousedown", () => (drawing = true));
+      canvas.addEventListener("mouseup", () => (drawing = false));
+      canvas.addEventListener("mouseout", () => (drawing = false));
+      canvas.addEventListener("mousemove", (e) => {
+        if (!drawing) return;
+        const rect = canvas.getBoundingClientRect();
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "black";
+        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
       });
+    }
 
-      doc.save("equipment-issue.pdf");
-    });
+    function updateStatus() {
+      const issuedStatus = document.getElementById("issuedStatus");
+      const remainingCount = document.getElementById("remainingCount");
+      let issued = 0;
+      issuedStatus.innerHTML = "";
+      selectedNames.forEach((name, idx) => {
+        const btn = document.getElementById(`issuedBtn-${idx}`);
+        const isIssued = btn && btn.textContent === "Not Issued";
+        if (isIssued) issued++;
+        issuedStatus.innerHTML += `<p>${name}: ${isIssued ? "✅ Issued" : "❌ Not Issued"}</p>`;
+      });
+      remainingCount.textContent = `Remaining: ${selectedNames.length - issued}`;
+    }
+
+    function renderTable() {
+      if (!selectedNames.length) {
+        tableBody.innerHTML = '<tr><td colspan="7">No names were selected. Please return to the first page.</td></tr>';
+        return;
+      }
+      tableBody.innerHTML = "";
+      selectedNames.forEach((name, idx) => {
+        const row = document.createElement("tr");
+        const mcnCell = document.createElement("td");
+        const batteryCell = document.createElement("td");
+        const pumpCell = document.createElement("td");
+
+        const select = document.createElement("select");
+        select.innerHTML = `<option value="0">0</option><option value="1">1</option><option value="2">2</option>`;
+        select.addEventListener("change", function () {
+          const count = parseInt(this.value);
+          mcnCell.querySelector(".mcn-container")?.remove();
+          batteryCell.querySelector(".battery-container")?.remove();
+          pumpCell.querySelector(".pump-container")?.remove();
+          if (count > 0) {
+            mcnCell.appendChild(createInputBoxes(count, idx, 'mcn'));
+            batteryCell.appendChild(createInputBoxes(count, idx, 'battery'));
+            pumpCell.appendChild(createInputBoxes(count, idx, 'pump'));
+          }
+        });
+        mcnCell.appendChild(select);
+
+        const canvas = document.createElement("canvas");
+        canvas.id = `signature-${idx}`;
+        canvas.width = 150;
+        canvas.height = 50;
+        canvas.style.pointerEvents = "none";
+        setupSignatureCanvas(canvas);
+
+        row.innerHTML = `
+          <td>${idx + 1}</td>
+          <td>${name}</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td><button id="issuedBtn-${idx}" class="red" onclick="toggleIssued(${idx}, true)" disabled>Issued</button></td>
+          <td></td>
+        `;
+
+        row.children[2].replaceWith(mcnCell);
+        row.children[3].replaceWith(batteryCell);
+        row.children[4].replaceWith(pumpCell);
+        row.children[6].appendChild(canvas);
+
+        tableBody.appendChild(row);
+      });
+      updateStatus();
+    }
+
+    renderTable();
   </script>
 </body>
 </html>
