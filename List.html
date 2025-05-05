@@ -133,7 +133,11 @@
   </div>
   <div id="overlay"></div>
   <script>
-const selectedNames = JSON.parse(localStorage.getItem("selectedNames") || "[]");
+localStorage.setItem("selectedNames", JSON.stringify([...new Set(JSON.parse(localStorage.getItem("selectedNames") || "[]"))]));
+const rawNames = JSON.parse(localStorage.getItem("selectedNames") || "[]");
+const selectedNames = [...new Set(rawNames)];
+localStorage.setItem("selectedNames", JSON.stringify(selectedNames));
+
 const uniqueNames = [...new Set(selectedNames)];
 
 const tableBody = document.getElementById("tableBody");
