@@ -242,6 +242,11 @@
      }
  
      delete signatureData[rowIdx];
+
+    sigCell.innerHTML = `
+    <button class="green" onclick="openSignatureModal(${rowIdx})">Sign</button>
+    <div class="signature-img-container" style="margin-top: 5px;"></div>
+  `;
  
      const pdfSigCell = document.querySelector(`#pdfContent #row-${rowIdx} .signature-status`);
      if (pdfSigCell) {
@@ -249,7 +254,11 @@
          <div class="signature-img-container" style="margin-top: 5px;"></div>
        `;
      }
-   }
+     const pdfStatusCell = document.querySelector(`#pdf-row-${rowIdx} td:nth-child(6)`);
+  if (pdfStatusCell) {
+    pdfStatusCell.innerHTML = `❌ Not Issued`;
+  }
+   
  
    updateStatus();
  }
