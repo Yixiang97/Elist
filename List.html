@@ -138,9 +138,6 @@
 
   <script>
    const selectedNames = JSON.parse(localStorage.getItem("selectedNames") || "[]");
-
-    });;
-
     const tableBody = document.getElementById("tableBody");
 
     function createInputBoxes(count, rowIdx, type) {
@@ -317,7 +314,6 @@ document.getElementById("saveSignature").addEventListener("click", () => {
         row.children[2].replaceWith(mcnCell);
         row.children[3].replaceWith(batteryCell);
         row.children[4].replaceWith(pumpCell);
-        row.children[6].appendChild(canvas);
 
         tableBody.appendChild(row);
       });
