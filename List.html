@@ -99,6 +99,11 @@
   background: rgba(0, 0, 0, 0.6);
   z-index: 999;
 }
+    .locked-row {
+  background-color: #2a2a2a !important;
+  opacity: 0.6;
+}
+
 
   </style>
 </head>
@@ -139,6 +144,8 @@
   <script>
    const selectedNames = JSON.parse(localStorage.getItem("selectedNames") || "[]");
     const tableBody = document.getElementById("tableBody");
+    const signatureData = {};
+
 
     function createInputBoxes(count, rowIdx, type) {
   const container = document.createElement("div");
@@ -199,19 +206,21 @@
       const rowInputs = document.querySelectorAll(`[data-row='${rowIdx}']`);
       const canvas = document.getElementById(`signature-${rowIdx}`);
       const issuedBtn = document.getElementById(`issuedBtn-${rowIdx}`);
+       const row = document.getElementById(`row-${rowIdx}`);
 
-      if (isIssued) {
-        rowInputs.forEach(input => input.disabled = true);
-        canvas.style.pointerEvents = "auto";
-        issuedBtn.textContent = "Not Issued";
-        issuedBtn.className = "red";
-      } else {
-        rowInputs.forEach(input => input.disabled = false);
-        canvas.style.pointerEvents = "none";
-        issuedBtn.textContent = "Issued";
-        issuedBtn.className = "green";
-        issuedBtn.disabled = true;
-      }
+    if (isIssued) {
+    rowInputs.forEach(input => input.disabled = true);
+    row.classList.add("locked-row");
+     issuedBtn.textContent = "Not Issued";
+    issuedBtn.className = "red";
+    } else {
+    rowInputs.forEach(input => input.disabled = false);
+    row.classList.remove("locked-row");
+    issuedBtn.textContent = "Issued";
+    issuedBtn.className = "green";
+    issuedBtn.disabled = true;
+    }
+
       updateStatus();
     }
 
@@ -250,12 +259,19 @@ modalCanvas.addEventListener("mousemove", (e) => {
 });
 
 document.getElementById("saveSignature").addEventListener("click", () => {
-  const signatureImg = modalCanvas.toDataURL(); // you can store this
+  const signatureImg = modalCanvas.toDataURL("image/png");
+
+  // Store it by row index
+  signatureData[activeRowIndex] = signatureImg;
+
+  // Update table display
   const row = document.getElementById(`row-${activeRowIndex}`);
   const statusCell = row.querySelector(".signature-status");
   statusCell.innerHTML = "✅ Signed";
+
   closeModal();
 });
+
 
 
     function updateStatus() {
@@ -279,7 +295,8 @@ document.getElementById("saveSignature").addEventListener("click", () => {
       }
       tableBody.innerHTML = "";
       selectedNames.forEach((name, idx) => {
-        const row = document.createElement("tr");
+       const row = document.createElement("tr");
+        row.id = `row-${idx}`;
         const mcnCell = document.createElement("td");
         const batteryCell = document.createElement("td");
         const pumpCell = document.createElement("td");
