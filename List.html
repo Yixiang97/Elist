@@ -91,13 +91,11 @@
   </div>
 
   <script>
-    // Ensure names are retrieved from localStorage
-    let selectedNames = [];
-    try {
-      selectedNames = JSON.parse(localStorage.getItem("selectedNames")) || [];
-    } catch (e) {
-      alert("Failed to load selected names. Please go back and select names again.");
-    }
+    // Fallback default for testing directly if localStorage is empty
+    let selectedNames = JSON.parse(localStorage.getItem("selectedNames")) || [
+      "John Doe",
+      "Jane Smith"
+    ];
 
     const tableBody = document.getElementById("tableBody");
 
