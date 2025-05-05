@@ -75,11 +75,31 @@
       padding-left: 20px;
     }
 
-    canvas {
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
+#signatureModal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #222;
+  padding: 20px;
+  border-radius: 8px;
+  z-index: 1000;
+  box-shadow: 0 0 20px #000;
+  color: white;
+  text-align: center;
+}
+#overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+}
+
   </style>
 </head>
 <body>
@@ -106,10 +126,19 @@
     <p id="remainingCount"></p>
   </div>
 
+  <div id="signatureModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  background:#222; padding:20px; border-radius:8px; z-index:1000; box-shadow:0 0 20px #000;">
+  <h3>Sign Here</h3>
+  <canvas id="modalCanvas" width="300" height="100" style="background:#fff; border:1px solid #ccc;"></canvas>
+  <br>
+  <button id="saveSignature" class="green">Save</button>
+  <button onclick="closeModal()" class="red">Cancel</button>
+</div>
+<div id="overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#000a; z-index:999;"></div>
+
   <script>
    const selectedNames = JSON.parse(localStorage.getItem("selectedNames") || "[]");
-    selectedNames.forEach(name => {
-      document.body.innerHTML += `<p>${name}</p>`;
+
     });;
 
     const tableBody = document.getElementById("tableBody");
@@ -189,24 +218,48 @@
       updateStatus();
     }
 
-    function setupSignatureCanvas(canvas) {
-      const ctx = canvas.getContext("2d");
-      let drawing = false;
-      canvas.addEventListener("mousedown", () => (drawing = true));
-      canvas.addEventListener("mouseup", () => (drawing = false));
-      canvas.addEventListener("mouseout", () => (drawing = false));
-      canvas.addEventListener("mousemove", (e) => {
-        if (!drawing) return;
-        const rect = canvas.getBoundingClientRect();
-        ctx.lineWidth = 2;
-        ctx.lineCap = "round";
-        ctx.strokeStyle = "black";
-        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-      });
-    }
+  let activeRowIndex = null;
+const modalCanvas = document.getElementById("modalCanvas");
+const ctx = modalCanvas.getContext("2d");
+
+function openSignatureModal(rowIdx) {
+  activeRowIndex = rowIdx;
+  document.getElementById("signatureModal").style.display = "block";
+  document.getElementById("overlay").style.display = "block";
+  ctx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
+}
+
+function closeModal() {
+  document.getElementById("signatureModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+  activeRowIndex = null;
+}
+
+// Signature drawing
+let drawing = false;
+modalCanvas.addEventListener("mousedown", () => drawing = true);
+modalCanvas.addEventListener("mouseup", () => drawing = false);
+modalCanvas.addEventListener("mouseout", () => drawing = false);
+modalCanvas.addEventListener("mousemove", (e) => {
+  if (!drawing) return;
+  const rect = modalCanvas.getBoundingClientRect();
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "black";
+  ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+});
+
+document.getElementById("saveSignature").addEventListener("click", () => {
+  const signatureImg = modalCanvas.toDataURL(); // you can store this
+  const row = document.getElementById(`row-${activeRowIndex}`);
+  const statusCell = row.querySelector(".signature-status");
+  statusCell.innerHTML = "✅ Signed";
+  closeModal();
+});
+
 
     function updateStatus() {
       const issuedStatus = document.getElementById("issuedStatus");
@@ -249,12 +302,7 @@
         });
         mcnCell.appendChild(select);
 
-        const canvas = document.createElement("canvas");
-        canvas.id = `signature-${idx}`;
-        canvas.width = 150;
-        canvas.height = 50;
-        canvas.style.pointerEvents = "none";
-        setupSignatureCanvas(canvas);
+      
 
         row.innerHTML = `
           <td>${idx + 1}</td>
@@ -263,7 +311,7 @@
           <td></td>
           <td></td>
           <td><button id="issuedBtn-${idx}" class="red" onclick="toggleIssued(${idx}, true)" disabled>Issued</button></td>
-          <td></td>
+          <td class="signature-status"><button class="green" onclick="openSignatureModal(${idx})">Sign</button></td>
         `;
 
         row.children[2].replaceWith(mcnCell);
