@@ -112,12 +112,28 @@
   <div id="pdfContent">
   <h2>Equipment Issuance Summary</h2>
 
-  <table id="issueTable">...</table>
+  <table id="issueTable"><thead>
+      <tr>
+        <th>No.</th>
+        <th>Name</th>
+        <th>MCN (Qty)</th>
+        <th>Battery</th>
+        <th>Pump Mic</th>
+        <th>Status</th>
+        <th>Signature</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody></table>
 
-  <div class="status-box" id="statusBox">...</div>
+  <div class="status-box" id="statusBox">
+    <h3>Issuance Status</h3>
+    <div id="issuedStatus"></div>
+    <p id="remainingCount"></p>
+  </div>
 </div>
 
-<button class="green" onclick="exportToPDF()">Export to PDF</button>
+<button id="exportBtn" class="green" onclick="exportToPDF()" disabled>Export to PDF</button>
+
 
   <table id="issueTable">
     <thead>
@@ -158,14 +174,15 @@
 function exportToPDF() {
   const element = document.getElementById("pdfContent");
   const opt = {
-    margin:       0.3,
-    filename:     'equipment-issuance.pdf',
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2 },
-    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    margin: 0.3,
+    filename: 'equipment-issuance.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
   };
   html2pdf().from(element).set(opt).save();
 }
+
 
     function createInputBoxes(count, rowIdx, type) {
   const container = document.createElement("div");
