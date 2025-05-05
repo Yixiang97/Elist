@@ -74,6 +74,12 @@
       text-align: left;
       padding-left: 20px;
     }
+
+    canvas {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -117,7 +123,14 @@
         input.placeholder = `Scan ${type} ${i + 1}`;
         input.dataset.row = rowIdx;
         input.dataset.type = type;
-        input.addEventListener("input", checkRowFilled);
+        input.addEventListener("input", (e) => {
+          checkRowFilled.call(e.target);
+          if (e.target.value.trim()) {
+            const inputs = [...container.querySelectorAll('input')];
+            const nextInput = inputs[i + 1];
+            if (nextInput) nextInput.focus();
+          }
+        });
         container.appendChild(input);
       }
       return container;
@@ -136,22 +149,41 @@
 
     function toggleIssued(rowIdx, isIssued) {
       const rowInputs = document.querySelectorAll(`[data-row='${rowIdx}']`);
-      const signBox = document.getElementById(`signature-${rowIdx}`);
+      const canvas = document.getElementById(`signature-${rowIdx}`);
       const issuedBtn = document.getElementById(`issuedBtn-${rowIdx}`);
 
       if (isIssued) {
         rowInputs.forEach(input => input.disabled = true);
-        signBox.disabled = false;
+        canvas.style.pointerEvents = "auto";
         issuedBtn.textContent = "Not Issued";
         issuedBtn.className = "red";
       } else {
         rowInputs.forEach(input => input.disabled = false);
-        signBox.disabled = true;
+        canvas.style.pointerEvents = "none";
         issuedBtn.textContent = "Issued";
         issuedBtn.className = "green";
         issuedBtn.disabled = true;
       }
       updateStatus();
+    }
+
+    function setupSignatureCanvas(canvas) {
+      const ctx = canvas.getContext("2d");
+      let drawing = false;
+      canvas.addEventListener("mousedown", () => (drawing = true));
+      canvas.addEventListener("mouseup", () => (drawing = false));
+      canvas.addEventListener("mouseout", () => (drawing = false));
+      canvas.addEventListener("mousemove", (e) => {
+        if (!drawing) return;
+        const rect = canvas.getBoundingClientRect();
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "black";
+        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+      });
     }
 
     function updateStatus() {
@@ -195,6 +227,13 @@
         });
         mcnCell.appendChild(select);
 
+        const canvas = document.createElement("canvas");
+        canvas.id = `signature-${idx}`;
+        canvas.width = 150;
+        canvas.height = 50;
+        canvas.style.pointerEvents = "none";
+        setupSignatureCanvas(canvas);
+
         row.innerHTML = `
           <td>${idx + 1}</td>
           <td>${name}</td>
@@ -202,12 +241,13 @@
           <td></td>
           <td></td>
           <td><button id="issuedBtn-${idx}" class="red" onclick="toggleIssued(${idx}, true)" disabled>Issued</button></td>
-          <td><input type="text" id="signature-${idx}" placeholder="Sign here" disabled></td>
+          <td></td>
         `;
 
         row.children[2].replaceWith(mcnCell);
         row.children[3].replaceWith(batteryCell);
         row.children[4].replaceWith(pumpCell);
+        row.children[6].appendChild(canvas);
 
         tableBody.appendChild(row);
       });
