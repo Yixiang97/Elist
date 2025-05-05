@@ -241,9 +241,31 @@ modalCanvas.addEventListener("mousemove", (e) => {
 document.getElementById("saveSignature").addEventListener("click", () => {
   const sigImg = modalCanvas.toDataURL("image/png");
   signatureData[activeRowIndex] = sigImg;
+
+  // Update visible table
   const row = document.getElementById(`row-${activeRowIndex}`);
   const statusCell = row.querySelector(".signature-status");
-  statusCell.innerHTML = "✅ Signed <div class='signature-img-container' style='margin-top: 5px;'><img src='" + sigImg + "' width='150'/></div>";
+  statusCell.innerHTML = `
+    ✅ Signed
+    <div class='signature-img-container' style='margin-top: 5px;'>
+      <img src='${sigImg}' width='150'/>
+    </div>
+  `;
+
+  // Update PDF content row
+  const pdfRow = document.querySelector(`#pdfContent #row-${activeRowIndex}`);
+  if (pdfRow) {
+    const pdfSigCell = pdfRow.querySelector(".signature-status");
+    if (pdfSigCell) {
+      pdfSigCell.innerHTML = `
+        ✅ Signed
+        <div class='signature-img-container' style='margin-top: 5px;'>
+          <img src='${sigImg}' width='150'/>
+        </div>
+      `;
+    }
+  }
+
   closeModal();
   updateStatus();
 });
