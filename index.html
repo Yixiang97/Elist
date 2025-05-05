@@ -179,11 +179,20 @@
       cells.forEach(cell => cell.textContent = allTicked ? "✅" : "❌");
     }
 
-    function submitPage() {
-    const name = document.getElementById("nameSelect").value;
-    localStorage.setItem("selectedName", name);  // or use sessionStorage
-    window.location.href = "List.html";
-  }
+   function submitPage() {
+  const selectedNames = [];
+  const rows = document.querySelectorAll("#nameList tr");
+  rows.forEach(row => {
+    const name = row.cells[0].textContent;
+    const tick = row.cells[1].textContent;
+    if (tick === "✅") {
+      selectedNames.push(name);
+    }
+  });
+
+  localStorage.setItem("selectedNames", JSON.stringify(selectedNames));
+  window.location.href = "List.html";
+}
 
     function loadNames() {
       const stored = JSON.parse(localStorage.getItem("elist") || "[]");
