@@ -27,6 +27,7 @@
       border: 1px solid #333;
       padding: 10px;
       text-align: center;
+      vertical-align: top;
     }
 
     th {
@@ -41,6 +42,15 @@
       border: 1px solid #555;
       color: #fff;
       border-radius: 4px;
+      margin: 2px;
+    }
+
+    select {
+      background-color: #2a2a2a;
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 4px;
+      padding: 6px;
     }
 
     .green {
@@ -91,7 +101,6 @@
   </div>
 
   <script>
-    // Fallback default for testing directly if localStorage is empty
     let selectedNames = JSON.parse(localStorage.getItem("selectedNames")) || [
       "John Doe",
       "Jane Smith"
@@ -101,19 +110,14 @@
 
     function createInputBoxes(count, rowIdx, type) {
       const container = document.createElement("div");
+      container.className = type + "-container";
       for (let i = 0; i < count; i++) {
         const input = document.createElement("input");
         input.type = "text";
+        input.placeholder = `Scan ${type} ${i + 1}`;
         input.dataset.row = rowIdx;
         input.dataset.type = type;
         input.addEventListener("input", checkRowFilled);
-        input.addEventListener("keypress", (e) => {
-          if (e.key === "Enter") {
-            const inputs = Array.from(container.querySelectorAll('input'));
-            const nextInput = inputs[i + 1];
-            if (nextInput) nextInput.focus();
-          }
-        });
         container.appendChild(input);
       }
       return container;
@@ -171,8 +175,25 @@
       }
       tableBody.innerHTML = "";
       selectedNames.forEach((name, idx) => {
-        const mcnQty = 1;
         const row = document.createElement("tr");
+        const mcnCell = document.createElement("td");
+        const batteryCell = document.createElement("td");
+        const pumpCell = document.createElement("td");
+
+        const select = document.createElement("select");
+        select.innerHTML = `<option value="0">0</option><option value="1">1</option><option value="2">2</option>`;
+        select.addEventListener("change", function () {
+          const count = parseInt(this.value);
+          mcnCell.querySelector(".mcn-container")?.remove();
+          batteryCell.querySelector(".battery-container")?.remove();
+          pumpCell.querySelector(".pump-container")?.remove();
+          if (count > 0) {
+            mcnCell.appendChild(createInputBoxes(count, idx, 'mcn'));
+            batteryCell.appendChild(createInputBoxes(count, idx, 'battery'));
+            pumpCell.appendChild(createInputBoxes(count, idx, 'pump'));
+          }
+        });
+        mcnCell.appendChild(select);
 
         row.innerHTML = `
           <td>${idx + 1}</td>
@@ -184,9 +205,9 @@
           <td><input type="text" id="signature-${idx}" placeholder="Sign here" disabled></td>
         `;
 
-        row.children[2].appendChild(createInputBoxes(mcnQty, idx, 'mcn'));
-        row.children[3].appendChild(createInputBoxes(mcnQty, idx, 'battery'));
-        row.children[4].appendChild(createInputBoxes(mcnQty, idx, 'pump'));
+        row.children[2].replaceWith(mcnCell);
+        row.children[3].replaceWith(batteryCell);
+        row.children[4].replaceWith(pumpCell);
 
         tableBody.appendChild(row);
       });
