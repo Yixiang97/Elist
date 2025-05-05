@@ -133,144 +133,28 @@
 <div id="overlay"></div>
 
 <script>
-  function updatePdfFields(rowIdx) {
-  const mcnInputs = document.querySelectorAll(`[data-row='${rowIdx}'][data-type='mcn']`);
-  const batteryInputs = document.querySelectorAll(`[data-row='${rowIdx}'][data-type='battery']`);
-  const pumpInputs = document.querySelectorAll(`[data-row='${rowIdx}'][data-type='pump']`);
-
-  const formatInputs = (inputs) =>
-    Array.from(inputs).map(input => input.value.trim()).filter(Boolean).join(', ');
-
-  const mcnText = formatInputs(mcnInputs);
-  const batteryText = formatInputs(batteryInputs);
-  const pumpText = formatInputs(pumpInputs);
-
-  const mcnCell = document.getElementById(`pdf-mcn-${rowIdx}`);
-  const batteryCell = document.getElementById(`pdf-battery-${rowIdx}`);
-  const pumpCell = document.getElementById(`pdf-pump-${rowIdx}`);
-
-  if (mcnCell) mcnCell.textContent = mcnText;
-  if (batteryCell) batteryCell.textContent = batteryText;
-  if (pumpCell) pumpCell.textContent = pumpText;
-}
-
 const selectedNames = JSON.parse(localStorage.getItem("selectedNames") || "[]");
 const tableBody = document.getElementById("tableBody");
 const signatureData = {};
-
-function exportToPDF() {
-  const element = document.getElementById("pdfContent");
-  const opt = {
-    margin: 0.3,
-    filename: 'equipment-issuance.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-  };
-  html2pdf().from(element).set(opt).save();
-}
-
-function createInputBoxes(count, rowIdx, type) {
-  const container = document.createElement("div");
-  container.className = type + "-container";
-
-  for (let i = 0; i < count; i++) {
-    const input = document.createElement("input");
-    input.type = "text";
-    input.placeholder = `Scan ${type} ${i + 1}`;
-    input.autocomplete = "off";
-    input.dataset.row = rowIdx;
-    input.dataset.type = type;
-    input.pattern = type === "mcn" ? "\\d{7}" : "KH\\d{3}";
-
-    input.addEventListener("input", (e) => {
-      checkRowFilled.call(e.target);
-      const value = e.target.value.trim();
-      let expectedLength = type === "mcn" ? 7 : 5;
-      if (type === "mcn") expectedLength = 7;
-  else if (type === "battery" || type === "pump") expectedLength = 5;
-
-  if (value.length === expectedLength) {
-    const inputs = [...container.querySelectorAll('input')];
-    const nextInput = inputs[i + 1];
-    if (nextInput) nextInput.focus();
-  }
-
-  updatePdfFields(rowIdx);  // ✅ sync to PDF table
-});
-
-    container.appendChild(input);
-  }
-
-  return container;
-}
-
-function checkRowFilled() {
-  const rowIdx = this.dataset.row;
-  const rowInputs = document.querySelectorAll(`[data-row='${rowIdx}']`);
-  const issuedBtn = document.getElementById(`issuedBtn-${rowIdx}`);
-  issuedBtn.disabled = [...rowInputs].some(input => !input.value.trim());
-}
-
-function toggleIssued(rowIdx, isIssued) {
-  const row = document.getElementById(`row-${rowIdx}`);
-  const rowInputs = document.querySelectorAll(`[data-row='${rowIdx}']`);
-  const issuedBtn = document.getElementById(`issuedBtn-${rowIdx}`);
-
-  if (isIssued) {
-    rowInputs.forEach(input => input.disabled = true);
-    row.classList.add("locked-row");
-    issuedBtn.innerHTML = "✏️ Edit";
-    issuedBtn.title = "Click to make amendments";
-    issuedBtn.setAttribute("onclick", `toggleIssued(${rowIdx}, false)`);
-    issuedBtn.className = "red";
-  } else {
-    rowInputs.forEach(input => input.disabled = false);
-    row.classList.remove("locked-row");
-    issuedBtn.innerHTML = "Issued";
-    issuedBtn.title = "";
-    issuedBtn.setAttribute("onclick", `toggleIssued(${rowIdx}, true)`);
-    issuedBtn.className = "green";
-    issuedBtn.disabled = true;
-
-    const sigStatusCell = document.querySelector(`#row-${rowIdx} .signature-status`);
-    if (sigStatusCell) {
-      sigStatusCell.innerHTML = `
-        <button class="green" onclick="openSignatureModal(${rowIdx})">Sign</button>
-        <div class="signature-img-container" style="margin-top: 5px;"></div>
-      `;
-    }
-
-    delete signatureData[rowIdx];
-
-    const pdfSigCell = document.querySelector(`#pdfContent #row-${rowIdx} .signature-status`);
-    if (pdfSigCell) {
-      pdfSigCell.innerHTML = `
-        <div class="signature-img-container" style="margin-top: 5px;"></div>
-      `;
-    }
-  }
-
-  updateStatus();
-}
-
 let activeRowIndex = null;
+
 const modalCanvas = document.getElementById("modalCanvas");
 const ctx = modalCanvas.getContext("2d");
 
+// Signature Modal Handlers
 function openSignatureModal(rowIdx) {
   activeRowIndex = rowIdx;
   document.getElementById("signatureModal").style.display = "block";
   document.getElementById("overlay").style.display = "block";
   ctx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
 }
-
 function closeModal() {
   document.getElementById("signatureModal").style.display = "none";
   document.getElementById("overlay").style.display = "none";
   activeRowIndex = null;
 }
 
+// Signature Drawing
 let drawing = false;
 modalCanvas.addEventListener("mousedown", () => drawing = true);
 modalCanvas.addEventListener("mouseup", () => drawing = false);
@@ -287,50 +171,130 @@ modalCanvas.addEventListener("mousemove", (e) => {
   ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
 });
 
+// Save Signature
 document.getElementById("saveSignature").addEventListener("click", () => {
   const sigImg = modalCanvas.toDataURL("image/png");
   signatureData[activeRowIndex] = sigImg;
 
-  // Update visible table
   const row = document.getElementById(`row-${activeRowIndex}`);
-  const statusCell = row.querySelector(".signature-status");
-  statusCell.innerHTML = `
+  const sigCell = row.querySelector(".signature-status");
+  sigCell.innerHTML = `
     ✅ Signed
     <div class='signature-img-container' style='margin-top: 5px;'>
       <img src='${sigImg}' width='150'/>
     </div>
   `;
 
-  // Update PDF content row
-  const pdfRow = document.querySelector(`#pdfContent #row-${activeRowIndex}`);
-  if (pdfRow) {
-    const pdfSigCell = pdfRow.querySelector(".signature-status");
-    if (pdfSigCell) {
-      pdfSigCell.innerHTML = `
-        ✅ Signed
-        <div class='signature-img-container' style='margin-top: 5px;'>
-          <img src='${sigImg}' width='150'/>
-        </div>
-      `;
-    }
+  const pdfSigCell = document.querySelector(`#pdfContent #row-${activeRowIndex} .signature-status`);
+  if (pdfSigCell) {
+    pdfSigCell.innerHTML = `
+      ✅ Signed
+      <div class='signature-img-container' style='margin-top: 5px;'>
+        <img src='${sigImg}' width='150'/>
+      </div>
+    `;
   }
 
   closeModal();
+  checkRowFilled(activeRowIndex);
   updateStatus();
 });
-const pdfTableBody = document.querySelector("#pdfContent #tableBody");
-  function renderTable() {
-  if (!selectedNames.length) {
-    tableBody.innerHTML = '<tr><td colspan="7">No names were selected. Please return to the first page.</td></tr>';
-    pdfTableBody.innerHTML = '<tr><td colspan="7">No names selected.</td></tr>';
-    return;
+
+// Update PDF Fields
+function updatePdfFields(rowIdx) {
+  const mcn = [...document.querySelectorAll(`[data-row="${rowIdx}"][data-type="mcn"]`)].map(i => i.value).join(', ');
+  const battery = [...document.querySelectorAll(`[data-row="${rowIdx}"][data-type="battery"]`)].map(i => i.value).join(', ');
+  const pump = [...document.querySelectorAll(`[data-row="${rowIdx}"][data-type="pump"]`)].map(i => i.value).join(', ');
+  document.getElementById(`pdf-mcn-${rowIdx}`).textContent = mcn;
+  document.getElementById(`pdf-battery-${rowIdx}`).textContent = battery;
+  document.getElementById(`pdf-pump-${rowIdx}`).textContent = pump;
+}
+
+// Create Input Boxes
+function createInputBoxes(count, rowIdx, type) {
+  const container = document.createElement("div");
+  container.className = `${type}-container`;
+  for (let i = 0; i < count; i++) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = `Scan ${type} ${i + 1}`;
+    input.autocomplete = "off";
+    input.pattern = type === "mcn" ? "\\d{7}" : "KH\\d{3}";
+    input.dataset.row = rowIdx;
+    input.dataset.type = type;
+
+    input.addEventListener("input", () => {
+      checkRowFilled(rowIdx);
+      updatePdfFields(rowIdx);
+    });
+
+    container.appendChild(input);
+  }
+  return container;
+}
+
+// Check if row is fully filled and signed
+function checkRowFilled(rowIdx) {
+  const inputs = document.querySelectorAll(`[data-row="${rowIdx}"]`);
+  const issuedBtn = document.getElementById(`issuedBtn-${rowIdx}`);
+  const allFilled = [...inputs].every(input => input.value.trim());
+  const isSigned = !!signatureData[rowIdx];
+  issuedBtn.disabled = !(allFilled && isSigned);
+}
+
+// Toggle Issued/Edit Mode
+function toggleIssued(rowIdx, isIssued) {
+  const row = document.getElementById(`row-${rowIdx}`);
+  const inputs = document.querySelectorAll(`[data-row="${rowIdx}"]`);
+  const btn = document.getElementById(`issuedBtn-${rowIdx}`);
+  const sigCell = row.querySelector(".signature-status");
+
+  if (isIssued) {
+    inputs.forEach(i => i.disabled = true);
+    row.classList.add("locked-row");
+    btn.textContent = "✏️ Edit";
+    btn.className = "red";
+    btn.setAttribute("onclick", `toggleIssued(${rowIdx}, false)`);
+  } else {
+    inputs.forEach(i => i.disabled = false);
+    row.classList.remove("locked-row");
+    btn.textContent = "Issued";
+    btn.className = "green";
+    btn.disabled = true;
+    btn.setAttribute("onclick", `toggleIssued(${rowIdx}, true)`);
+
+    // Clear signature
+    delete signatureData[rowIdx];
+    sigCell.innerHTML = `
+      <button class="green" onclick="openSignatureModal(${rowIdx})">Sign</button>
+      <div class="signature-img-container" style="margin-top: 5px;"></div>
+    `;
+    const pdfSigCell = document.querySelector(`#pdfContent #row-${rowIdx} .signature-status`);
+    if (pdfSigCell) pdfSigCell.innerHTML = "<div class='signature-img-container' style='margin-top:5px;'></div>";
   }
 
+  updateStatus();
+}
+
+// Export PDF
+function exportToPDF() {
+  const el = document.getElementById("pdfContent");
+  html2pdf().from(el).set({
+    margin: 0.3,
+    filename: 'equipment-issuance.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+  }).save();
+}
+
+// Render Table
+function renderTable() {
+  const pdfTable = document.querySelector("#pdfContent #tableBody");
   tableBody.innerHTML = "";
-  pdfTableBody.innerHTML = "";
+  pdfTable.innerHTML = "";
 
   selectedNames.forEach((name, idx) => {
-    // === MAIN TABLE ROW ===
     const row = document.createElement("tr");
     row.id = `row-${idx}`;
 
@@ -341,15 +305,12 @@ const pdfTableBody = document.querySelector("#pdfContent #tableBody");
     const select = document.createElement("select");
     select.innerHTML = `<option value="0">0</option><option value="1">1</option><option value="2">2</option>`;
     select.addEventListener("change", function () {
-      const count = parseInt(this.value);
-      mcnCell.querySelector(".mcn-container")?.remove();
-      batteryCell.querySelector(".battery-container")?.remove();
-      pumpCell.querySelector(".pump-container")?.remove();
-
+      const count = +this.value;
+      mcnCell.innerHTML = ""; batteryCell.innerHTML = ""; pumpCell.innerHTML = "";
       if (count > 0) {
-        mcnCell.appendChild(createInputBoxes(count, idx, 'mcn'));
-        batteryCell.appendChild(createInputBoxes(count, idx, 'battery'));
-        pumpCell.appendChild(createInputBoxes(count, idx, 'pump'));
+        mcnCell.appendChild(createInputBoxes(count, idx, "mcn"));
+        batteryCell.appendChild(createInputBoxes(count, idx, "battery"));
+        pumpCell.appendChild(createInputBoxes(count, idx, "pump"));
       }
     });
     mcnCell.appendChild(select);
@@ -360,61 +321,50 @@ const pdfTableBody = document.querySelector("#pdfContent #tableBody");
       <td></td>
       <td></td>
       <td></td>
-      <td><button id="issuedBtn-${idx}" class="red" onclick="toggleIssued(${idx}, true)" disabled>Issued</button></td>
-      <td class="signature-status" id="sig-cell-${idx}">
+      <td><button id="issuedBtn-${idx}" class="green" onclick="toggleIssued(${idx}, true)" disabled>Issued</button></td>
+      <td class="signature-status">
         <button class="green" onclick="openSignatureModal(${idx})">Sign</button>
         <div class="signature-img-container" style="margin-top: 5px;"></div>
       </td>
     `;
-
     row.children[2].replaceWith(mcnCell);
     row.children[3].replaceWith(batteryCell);
     row.children[4].replaceWith(pumpCell);
     tableBody.appendChild(row);
 
-    // === PDF TABLE ROW ===
+    // PDF row
     const pdfRow = document.createElement("tr");
     pdfRow.id = `row-${idx}`;
-
     pdfRow.innerHTML = `
       <td>${idx + 1}</td>
       <td>${name}</td>
       <td id="pdf-mcn-${idx}"></td>
       <td id="pdf-battery-${idx}"></td>
       <td id="pdf-pump-${idx}"></td>
-      <td>${"❌ Not Issued"}</td>
-      <td class="signature-status">
-        <div class="signature-img-container" style="margin-top: 5px;"></div>
-      </td>
+      <td>❌ Not Issued</td>
+      <td class="signature-status"><div class="signature-img-container" style="margin-top: 5px;"></div></td>
     `;
-    pdfTableBody.appendChild(pdfRow);
+    pdfTable.appendChild(pdfRow);
   });
-    
 
   updateStatus();
 }
 
-
+// Update Status + PDF button
 function updateStatus() {
   const issuedStatus = document.getElementById("issuedStatus");
   const remainingCount = document.getElementById("remainingCount");
   const exportBtn = document.getElementById("exportBtn");
 
-  let issued = 0;
-  let allIssued = true;
-  let allSigned = true;
+  let issued = 0, allIssued = true, allSigned = true;
 
   issuedStatus.innerHTML = "";
   selectedNames.forEach((name, idx) => {
     const btn = document.getElementById(`issuedBtn-${idx}`);
-    const sigImg = signatureData[idx];
-    const isIssued = btn && btn.textContent === "Not Issued";
-
-    if (isIssued) issued++;
-    else allIssued = false;
-
-    if (!sigImg) allSigned = false;
-
+    const signed = !!signatureData[idx];
+    const isIssued = btn && btn.textContent === "✏️ Edit";
+    if (isIssued) issued++; else allIssued = false;
+    if (!signed) allSigned = false;
     issuedStatus.innerHTML += `<p>${name}: ${isIssued ? "✅ Issued" : "❌ Not Issued"}</p>`;
   });
 
@@ -422,56 +372,7 @@ function updateStatus() {
   exportBtn.disabled = !(allIssued && allSigned);
 }
 
-function renderTable() {
-  if (!selectedNames.length) {
-    tableBody.innerHTML = '<tr><td colspan="7">No names selected. Go back to first page.</td></tr>';
-    return;
-  }
-
-  selectedNames.forEach((name, idx) => {
-    const row = document.createElement("tr");
-    row.id = `row-${idx}`;
-    const mcnCell = document.createElement("td");
-    const batteryCell = document.createElement("td");
-    const pumpCell = document.createElement("td");
-
-    const select = document.createElement("select");
-    select.innerHTML = `<option value="0">0</option><option value="1">1</option><option value="2">2</option>`;
-    select.addEventListener("change", function () {
-      const count = parseInt(this.value);
-      mcnCell.querySelector(".mcn-container")?.remove();
-      batteryCell.querySelector(".battery-container")?.remove();
-      pumpCell.querySelector(".pump-container")?.remove();
-      if (count > 0) {
-        mcnCell.appendChild(createInputBoxes(count, idx, 'mcn'));
-        batteryCell.appendChild(createInputBoxes(count, idx, 'battery'));
-        pumpCell.appendChild(createInputBoxes(count, idx, 'pump'));
-      }
-    });
-    mcnCell.appendChild(select);
-
-    row.innerHTML = `
-      <td>${idx + 1}</td>
-      <td>${name}</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td><button id="issuedBtn-${idx}" class="red" onclick="toggleIssued(${idx}, true)" disabled>Issued</button></td>
-      <td class="signature-status">
-        <button class="green" onclick="openSignatureModal(${idx})">Sign</button>
-        <div class="signature-img-container" style="margin-top: 5px;"></div>
-      </td>
-    `;
-
-    row.children[2].replaceWith(mcnCell);
-    row.children[3].replaceWith(batteryCell);
-    row.children[4].replaceWith(pumpCell);
-    tableBody.appendChild(row);
-  });
-
-  updateStatus();
-}
-
+// Initial render
 renderTable();
 </script>
 </body>
