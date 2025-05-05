@@ -118,8 +118,15 @@
       const container = document.createElement("div");
       container.className = type + "-container";
       for (let i = 0; i < count; i++) {
-        const input = document.createElement("input");
         input.type = "text";
+if (type === "mcn") {
+  input.pattern = "\\d{7}";
+  input.placeholder = `Scan ${type} ${i + 1}`;
+} else if (type === "battery" || type === "pump") {
+  input.pattern = "KH\\d{3}";
+  input.placeholder = `Scan ${type} ${i + 1}`;
+}
+input.autocomplete = "off";
         input.placeholder = `Scan ${type} ${i + 1}`;
         input.dataset.row = rowIdx;
         input.dataset.type = type;
