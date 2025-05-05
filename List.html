@@ -222,12 +222,14 @@ function toggleIssued(rowIdx, isIssued) {
     row.classList.add("locked-row");
     issuedBtn.innerHTML = "✏️ Edit";
     issuedBtn.title = "Click to make amendments";
+    issuedBtn.setAttribute("onclick", `toggleIssued(${rowIdx}, false)`);
     issuedBtn.className = "red";
   } else {
     rowInputs.forEach(input => input.disabled = false);
     row.classList.remove("locked-row");
     issuedBtn.innerHTML = "Issued";
     issuedBtn.title = "";
+    issuedBtn.setAttribute("onclick", `toggleIssued(${rowIdx}, true)`);
     issuedBtn.className = "green";
     issuedBtn.disabled = true;
 
