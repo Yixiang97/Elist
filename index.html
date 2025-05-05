@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Elist Manning</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      padding: 40px;
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-size: 28px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      width: 250px;
+      border: none;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      background-color: #1e1e1e;
+      color: #ffffff;
+    }
+
+    button {
+      padding: 10px 16px;
+      margin: 8px;
+      border: none;
+      border-radius: 6px;
+      background-color: #2e7d32;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #388e3c;
+    }
+
+    .table-container {
+      width: 60%;
+      max-height: 300px;
+      margin: 20px auto;
+      overflow-y: auto;
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: white;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #333;
+    }
+
+    th {
+      background-color: #2c2c2c;
+      position: sticky;
+      top: 0;
+    }
+
+    .tick {
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    ::placeholder {
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Elist Manning</h2>
+
+  <input type="text" id="searchInput" placeholder="Search name..." oninput="filterList()"><br>
+
+  <button onclick="addName()">Add Name (Temp)</button>
+  <button onclick="addPermanentName()">Add Name Permanently</button>
+  <button onclick="refreshList()">Refresh</button>
+  <button onclick="toggleAll()">Toggle All</button>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Selected</th>
+        </tr>
+      </thead>
+      <tbody id="nameList"></tbody>
+    </table>
+  </div>
+
+  <button onclick="submitPage()">Submit</button>
+
+  <script>
+    const defaultNames = [
+      "LONG JIEH LIANG", "MUHAMAD RIZAL BIN RIDWAN", "RAYMOND NG TECK MIN",
+      "NOOR HALEEM BIN MOHD HANIFA", "LOI ENG HAU", "MUHAMMAD AMLI BIN MOHAMAD ALI",
+      "AHMAD ANAS BIN MOHD MOHAIYUDDIN", "CLARENCE CHIEW WEI CHONG", "MUHAMMAD RIZUAN BIN MOHIDIN",
+      "MUHAMMAD KHAIRUL ANUAR BIN ABDUL RAHMAN", "CHAI WEE YEONG", "MUHAMMAD SYAFIQ BIN SULAIMAN",
+      "LIM JIAN DA", "MUHAMMAD LUQMAN NUL HAKIM", "MARCUS WONG LIANG WEI", "MUHAMMAD SHAZWANDI BIN SURIMAN",
+      "ABDULLAH KHAN BIN MOHAMED MURTUJAH", "MUHAMMAD HAIKAL BIN RAMLAN", "MOHAMAD SOLIHIN BIN MOHAMAD YUSRI",
+      "MUHAMMAD HAZIQ BIN JASMAN", "MUHAMMAD NURHADI BIN RAMLEE", "MOHAMAD ILYAS BIN MOHAMAD ZAIDI",
+      "SNG XIANG MING", "NG JIA SHENG", "ARIF ABDULLAH BIN ROSLAN", "LIM WEI LIANG", "R THAMIL MAGAN",
+      "MUHAMMAD ADLIFIKRI BIN ADANAN", "MOHAMMAD DANIAL BIN NOORALAM", "LEE YI XIANG", "SIM JUN TING",
+      "MUHAMMAD SYAFIYUDDIN BIN YUSRAN", "MOHAMMAD ARIFIN BIN MOHAMED SALLEH", "ADIB AFHAN BIN MOHAMAD SUHAIMI",
+      "MOHAMED HAFIS MARICAN BIN ASANA MARICAN", "MOHAMAD ILHAM ZIKRY BIN MOHAMAD ISKANDAR", "GOH ZHI PENG",
+      "MUHAMMED SHAFIQ BIN NAINAM", "MUHAMMAD AQASHA BIN SYED THAHAR", "ZIKRI IEZZAT BIN ZAKIR MOHAMMED",
+      "MUHAMMAD AQASYA BIN YUSNIZAM", "MUHAMMAD SYAFIQ BIN RUDYWAN", "MUHAMMAD ZAIYANI HIDIR BIN ZAINAL",
+      "DAIYAN BIN EDDIE", "JUSTUS HUAN REN JIE", "DAYAN TAN JIE AN"
+    ];
+
+    let currentNames = loadNames();
+    let allTicked = false;
+
+    function renderList(names) {
+      const nameList = document.getElementById("nameList");
+      nameList.innerHTML = "";
+      names.forEach(name => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${name}</td>
+          <td class="tick" onclick="toggleTick(this)">❌</td>
+        `;
+        nameList.appendChild(row);
+      });
+    }
+
+    function toggleTick(cell) {
+      cell.textContent = cell.textContent === "❌" ? "✅" : "❌";
+    }
+
+    function addName() {
+      const name = prompt("Enter a temporary name:");
+      if (name) {
+        currentNames.push(name);
+        renderList(currentNames);
+      }
+    }
+
+    function addPermanentName() {
+      const name = prompt("Enter a name to save permanently:");
+      if (name) {
+        let stored = JSON.parse(localStorage.getItem("elist") || "[]");
+        if (!stored.includes(name)) stored.push(name);
+        localStorage.setItem("elist", JSON.stringify(stored));
+        currentNames = loadNames();
+        renderList(currentNames);
+      }
+    }
+
+    function refreshList() {
+      currentNames = loadNames();
+      document.getElementById("searchInput").value = "";
+      renderList(currentNames);
+    }
+
+    function filterList() {
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const filtered = currentNames.filter(name => name.toLowerCase().includes(search));
+      renderList(filtered);
+    }
+
+    function toggleAll() {
+      const cells = document.querySelectorAll(".tick");
+      allTicked = !allTicked;
+      cells.forEach(cell => cell.textContent = allTicked ? "✅" : "❌");
+    }
+
+    function submitPage() {
+      window.location.href = "List.html"; // Replace with your target page
+    }
+
+    function loadNames() {
+      const stored = JSON.parse(localStorage.getItem("elist") || "[]");
+      return [...defaultNames, ...stored.filter(name => !defaultNames.includes(name))];
+    }
+
+    renderList(currentNames);
+  </script>
+
+</body>
+</html>
