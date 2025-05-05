@@ -118,6 +118,15 @@
       </thead>
       <tbody id="tableBody"></tbody>
     </table>
+     <!-- ✅ Hidden table for PDF export -->
+    <table style="display: none;">
+      <thead>
+        <tr>
+          <th>No.</th><th>Name</th><th>MCN (Qty)</th><th>Battery</th><th>Pump Mic</th><th>Status</th><th>Signature</th>
+        </tr>
+      </thead>
+      <tbody id="pdfTableBody"></tbody>
+    </table>
     <div class="status-box" id="statusBox">
       <h3>Issuance Status</h3>
       <div id="issuedStatus"></div>
@@ -177,13 +186,17 @@ modalCanvas.addEventListener("mousemove", (e) => {
   ctx.beginPath();
   ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
 });
-
+let drawing =false;
 // Save Signature
 document.getElementById("saveSignature").addEventListener("click", () => {
   const sigImg = modalCanvas.toDataURL("image/png");
   signatureData[activeRowIndex] = sigImg;
 
   const row = document.getElementById(`row-${activeRowIndex}`);
+  row.querySelector(".signature-status").innerHTML = `
+    ✅ Signed
+    <div class='signature-img-container'><img src='${sigImg}' width='150'/></div>
+  `;
   const sigCell = row.querySelector(".signature-status");
   sigCell.innerHTML = `
     ✅ Signed
@@ -298,9 +311,12 @@ function exportToPDF() {
 
 // Table rendering
 function renderTable() {
-  const pdfTable = document.querySelector("#pdfContent #tableBody");
+  const pdfTableBody = document.getElementById("pdfTableBody");
   tableBody.innerHTML = "";
-  pdfTable.innerHTML = "";
+  pdfTableBody.innerHTML = "";
+
+
+
 
   uniqueNames.forEach((name, idx) => {
     const row = document.createElement("tr");
