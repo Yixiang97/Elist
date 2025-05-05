@@ -101,10 +101,10 @@
   </div>
 
   <script>
-    let selectedNames = JSON.parse(localStorage.getItem("selectedNames")) || [
-      "John Doe",
-      "Jane Smith"
-    ];
+    const selectedNames = JSON.parse(localStorage.getItem("selectedNames") || "[]");
+  selectedNames.forEach(name => {
+    document.body.innerHTML += `<p>${name}</p>`;
+  });
 
     const tableBody = document.getElementById("tableBody");
 
