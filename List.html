@@ -115,33 +115,40 @@
     const tableBody = document.getElementById("tableBody");
 
     function createInputBoxes(count, rowIdx, type) {
-      const container = document.createElement("div");
-      container.className = type + "-container";
-      for (let i = 0; i < count; i++) {
-        input.type = "text";
-if (type === "mcn") {
-  input.pattern = "\\d{7}";
-  input.placeholder = `Scan ${type} ${i + 1}`;
-} else if (type === "battery" || type === "pump") {
-  input.pattern = "KH\\d{3}";
-  input.placeholder = `Scan ${type} ${i + 1}`;
-}
-input.autocomplete = "off";
-        input.placeholder = `Scan ${type} ${i + 1}`;
-        input.dataset.row = rowIdx;
-        input.dataset.type = type;
-        input.addEventListener("input", (e) => {
-          checkRowFilled.call(e.target);
-          if (e.target.value.trim()) {
-            const inputs = [...container.querySelectorAll('input')];
-            const nextInput = inputs[i + 1];
-            if (nextInput) nextInput.focus();
-          }
-        });
-        container.appendChild(input);
-      }
-      return container;
+  const container = document.createElement("div");
+  container.className = type + "-container";
+
+  for (let i = 0; i < count; i++) {
+    const input = document.createElement("input"); // <-- you missed this line
+
+    input.type = "text";
+    if (type === "mcn") {
+      input.pattern = "\\d{7}";
+      input.placeholder = `Scan ${type} ${i + 1}`;
+    } else if (type === "battery" || type === "pump") {
+      input.pattern = "KH\\d{3}";
+      input.placeholder = `Scan ${type} ${i + 1}`;
     }
+
+    input.autocomplete = "off";
+    input.dataset.row = rowIdx;
+    input.dataset.type = type;
+
+    input.addEventListener("input", (e) => {
+      checkRowFilled.call(e.target);
+      if (e.target.value.trim()) {
+        const inputs = [...container.querySelectorAll('input')];
+        const nextInput = inputs[i + 1];
+        if (nextInput) nextInput.focus();
+      }
+    });
+
+    container.appendChild(input);
+  }
+
+  return container;
+}
+
 
     function checkRowFilled() {
       const rowIdx = this.dataset.row;
