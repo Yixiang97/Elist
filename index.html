@@ -180,8 +180,10 @@
     }
 
     function submitPage() {
-      window.location.href = "List.html"; // Replace with your target page
-    }
+    const name = document.getElementById("nameSelect").value;
+    localStorage.setItem("selectedName", name);  // or use sessionStorage
+    window.location.href = "List.html";
+  }
 
     function loadNames() {
       const stored = JSON.parse(localStorage.getItem("elist") || "[]");
