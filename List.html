@@ -211,12 +211,12 @@
     const issuedBtn = document.getElementById(`issuedBtn-${rowIdx}`);
     issuedBtn.disabled = [...rowInputs].some(input => !input.value.trim());
   }
-  
+ 
   function toggleIssued(rowIdx, isIssued) {
     const row = document.getElementById(`row-${rowIdx}`);
     const rowInputs = document.querySelectorAll(`[data-row='${rowIdx}']`);
     const issuedBtn = document.getElementById(`issuedBtn-${rowIdx}`);
-  
+ 
     if (isIssued) {
       rowInputs.forEach(input => input.disabled = true);
       row.classList.add("locked-row");
@@ -232,7 +232,7 @@
       issuedBtn.setAttribute("onclick", `toggleIssued(${rowIdx}, true)`);
       issuedBtn.className = "green";
       issuedBtn.disabled = true;
-  
+ 
       const sigStatusCell = document.querySelector(`#row-${rowIdx} .signature-status`);
       if (sigStatusCell) {
         sigStatusCell.innerHTML = `
@@ -240,81 +240,29 @@
           <div class="signature-img-container" style="margin-top: 5px;"></div>
         `;
       }
-  
+ 
       delete signatureData[rowIdx];
-   const row = document.getElementById(`row-${rowIdx}`);
-   const rowInputs = document.querySelectorAll(`[data-row='${rowIdx}']`);
-   const issuedBtn = document.getElementById(`issuedBtn-${rowIdx}`);
  
      sigCell.innerHTML = `
      <button class="green" onclick="openSignatureModal(${rowIdx})">Sign</button>
      <div class="signature-img-container" style="margin-top: 5px;"></div>
    `;
-  
+ 
       const pdfSigCell = document.querySelector(`#pdfContent #row-${rowIdx} .signature-status`);
       if (pdfSigCell) {
         pdfSigCell.innerHTML = `
           <div class="signature-img-container" style="margin-top: 5px;"></div>
         `;
       }
+    }
       const pdfStatusCell = document.querySelector(`#pdf-row-${rowIdx} td:nth-child(6)`);
    if (pdfStatusCell) {
      pdfStatusCell.innerHTML = `❌ Not Issued`;
-   if (isIssued) {
-     rowInputs.forEach(input => input.disabled = true);
-     row.classList.add("locked-row");
-     issuedBtn.innerHTML = "✏️ Edit";
-     issuedBtn.title = "Click to make amendments";
-     issuedBtn.setAttribute("onclick", `toggleIssued(${rowIdx}, false)`);
-     issuedBtn.className = "red";
- 
-     // ✅ Update PDF status cell
-     const pdfStatusCell = document.querySelector(`#pdf-row-${rowIdx} td:nth-child(6)`);
-     if (pdfStatusCell) {
-       pdfStatusCell.innerHTML = `✅ Issued`;
-     }
- 
-   } else {
-     rowInputs.forEach(input => input.disabled = false);
-     row.classList.remove("locked-row");
-     issuedBtn.innerHTML = "Issued";
-     issuedBtn.title = "";
-     issuedBtn.setAttribute("onclick", `toggleIssued(${rowIdx}, true)`);
-     issuedBtn.className = "green";
-     issuedBtn.disabled = true;
- 
-     // ✅ Reset signature cell in main table
-     const sigStatusCell = document.querySelector(`#row-${rowIdx} .signature-status`);
-     if (sigStatusCell) {
-       sigStatusCell.innerHTML = `
-         <button class="green" onclick="openSignatureModal(${rowIdx})">Sign</button>
-         <div class="signature-img-container" style="margin-top: 5px;"></div>
-       `;
-     }
- 
-     // ✅ Remove stored signature data
-     delete signatureData[rowIdx];
- 
-     // ✅ Reset PDF signature cell
-     const pdfSigCell = document.querySelector(`#pdf-row-${rowIdx} .signature-status`);
-     if (pdfSigCell) {
-       pdfSigCell.innerHTML = `<div class="signature-img-container" style="margin-top: 5px;"></div>`;
-     }
- 
-     // ✅ Reset PDF status cell
-     const pdfStatusCell = document.querySelector(`#pdf-row-${rowIdx} td:nth-child(6)`);
-     if (pdfStatusCell) {
-       pdfStatusCell.innerHTML = `❌ Not Issued`;
-     }
    }
     
-  
+ 
     updateStatus();
   }
- 
-   updateStatus();
- }
- 
  
   let activeRowIndex = null;
  
@@ -412,7 +360,7 @@
     document.getElementById(`pdf-pump-${rowIdx}`).textContent = pump;
   }
   
-
+  // Create Input Boxes
   function createInputBoxes(count, rowIdx, type) {
     const container = document.createElement("div");
     container.className = `${type}-container`;
@@ -435,6 +383,7 @@
     return container;
   }
   
+  // Check if row is fully filled and signed
   function checkRowFilled(rowIdx) {
     const inputs = document.querySelectorAll(`[data-row="${rowIdx}"]`);
     const issuedBtn = document.getElementById(`issuedBtn-${rowIdx}`);
@@ -443,7 +392,7 @@
     issuedBtn.disabled = !(allFilled && isSigned);
   }
   
-
+  // Toggle Issued/Edit Mode
   function toggleIssued(rowIdx, isIssued) {
     const row = document.getElementById(`row-${rowIdx}`);
     const inputs = document.querySelectorAll(`[data-row="${rowIdx}"]`);
