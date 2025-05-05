@@ -27,20 +27,13 @@
       position: sticky;
       top: 0;
     }
-    input[type="text"] {
+    input[type="text"], select {
       padding: 6px;
       background-color: #2a2a2a;
       border: 1px solid #555;
       color: #fff;
       border-radius: 4px;
       margin: 2px;
-    }
-    select {
-      background-color: #2a2a2a;
-      color: #fff;
-      border: 1px solid #555;
-      border-radius: 4px;
-      padding: 6px;
     }
     .green {
       background-color: #2e7d32;
@@ -61,141 +54,173 @@
       text-align: left;
       padding-left: 20px;
     }
-    #signatureModal {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-      z-index: 1000;
-    }
-    #signatureCanvas {
-      background: #f0f0f0;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    #closeBtn {
-      margin-top: 10px;
+    .signature-btn {
       padding: 5px 10px;
-      background: #c62828;
-      color: #fff;
+      background-color: #4caf50;
+      color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
     }
-    #overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 999;
+    canvas {
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      display: block;
+      margin-top: 10px;
+    }
+    #submitBtn {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #1976d2;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h2>Selected Names</h2>
-  <div id="nameList"></div>
-  <button onclick="openSignature()">Signature</button>
-
+  <h2>Equipment Issuance</h2>
   <table>
     <thead>
       <tr>
         <th>Name</th>
+        <th>MCN Qty</th>
         <th>MCN Serial</th>
         <th>Battery</th>
         <th>Pump Mic</th>
+        <th>Signature</th>
       </tr>
     </thead>
     <tbody id="dataTable"></tbody>
   </table>
 
-  <div id="overlay"></div>
-  <div id="signatureModal">
-    <h3>Sign Below</h3>
-    <canvas id="signatureCanvas" width="300" height="150"></canvas><br>
-    <button id="closeBtn" onclick="closeSignature()">Close</button>
-  </div>
+  <button id="submitBtn">Submit All & Generate PDF</button>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
     const selectedNames = JSON.parse(localStorage.getItem("selectedNames") || "[]");
-    const nameList = document.getElementById("nameList");
     const tableBody = document.getElementById("dataTable");
 
-    selectedNames.forEach(name => {
+    selectedNames.forEach((name, index) => {
       const row = document.createElement("tr");
+
       const nameCell = document.createElement("td");
       nameCell.textContent = name;
 
-      const mcnInput = document.createElement("input");
-      mcnInput.type = "text";
-      mcnInput.pattern = "\\d{7}";
-      mcnInput.placeholder = "1234567";
-
-      const batteryInput = document.createElement("input");
-      batteryInput.type = "text";
-      batteryInput.pattern = "KH\\d{3}";
-      batteryInput.placeholder = "KH123";
-
-      const pumpInput = document.createElement("input");
-      pumpInput.type = "text";
-      pumpInput.pattern = "0[1-9]|[1-4][0-9]|5[0-2]";
-      pumpInput.placeholder = "01";
+      const qtyCell = document.createElement("td");
+      const qtySelect = document.createElement("select");
+      [0, 1, 2].forEach(val => {
+        const option = document.createElement("option");
+        option.value = val;
+        option.textContent = val;
+        qtySelect.appendChild(option);
+      });
+      qtyCell.appendChild(qtySelect);
 
       const mcnCell = document.createElement("td");
       const batteryCell = document.createElement("td");
       const pumpCell = document.createElement("td");
 
-      mcnCell.appendChild(mcnInput);
-      batteryCell.appendChild(batteryInput);
-      pumpCell.appendChild(pumpInput);
+      const signatureCell = document.createElement("td");
+      const signButton = document.createElement("button");
+      signButton.textContent = "Sign";
+      signButton.className = "signature-btn";
+      const signCanvas = document.createElement("canvas");
+      signCanvas.width = 150;
+      signCanvas.height = 50;
+      signCanvas.style.display = "none";
+
+      signatureCell.appendChild(signButton);
+      signatureCell.appendChild(signCanvas);
+
+      function setupSignatureCanvas(canvas) {
+        const ctx = canvas.getContext("2d");
+        let drawing = false;
+        canvas.addEventListener("mousedown", () => drawing = true);
+        canvas.addEventListener("mouseup", () => {
+          drawing = false;
+          ctx.beginPath();
+        });
+        canvas.addEventListener("mouseout", () => drawing = false);
+        canvas.addEventListener("mousemove", (e) => {
+          if (!drawing) return;
+          const rect = canvas.getBoundingClientRect();
+          ctx.lineWidth = 2;
+          ctx.lineCap = "round";
+          ctx.strokeStyle = "black";
+          ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        });
+      }
+
+      setupSignatureCanvas(signCanvas);
+
+      signButton.onclick = () => {
+        signCanvas.style.display = signCanvas.style.display === "block" ? "none" : "block";
+      };
+
+      qtySelect.addEventListener("change", () => {
+        const count = parseInt(qtySelect.value);
+        mcnCell.innerHTML = "";
+        batteryCell.innerHTML = "";
+        pumpCell.innerHTML = "";
+
+        for (let i = 0; i < count; i++) {
+          const mcnInput = document.createElement("input");
+          mcnInput.type = "text";
+          mcnInput.pattern = "\\d{7}";
+          mcnInput.placeholder = "1234567";
+          mcnCell.appendChild(mcnInput);
+
+          const batteryInput = document.createElement("input");
+          batteryInput.type = "text";
+          batteryInput.pattern = "KH\\d{3}";
+          batteryInput.placeholder = "KH123";
+          batteryCell.appendChild(batteryInput);
+
+          const pumpInput = document.createElement("input");
+          pumpInput.type = "text";
+          pumpInput.pattern = "0[1-9]|[1-4][0-9]|5[0-2]";
+          pumpInput.placeholder = "01";
+          pumpCell.appendChild(pumpInput);
+        }
+      });
 
       row.appendChild(nameCell);
+      row.appendChild(qtyCell);
       row.appendChild(mcnCell);
       row.appendChild(batteryCell);
       row.appendChild(pumpCell);
+      row.appendChild(signatureCell);
       tableBody.appendChild(row);
     });
 
-    function openSignature() {
-      document.getElementById("signatureModal").style.display = "block";
-      document.getElementById("overlay").style.display = "block";
-    }
+    document.getElementById("submitBtn").addEventListener("click", () => {
+      const {{ jsPDF }} = window.jspdf;
+      const doc = new jsPDF();
+      doc.text("Equipment Issuance Summary", 10, 10);
 
-    function closeSignature() {
-      document.getElementById("signatureModal").style.display = "none";
-      document.getElementById("overlay").style.display = "none";
-    }
+      const rows = document.querySelectorAll("#dataTable tr");
+      let y = 20;
 
-    const canvas = document.getElementById("signatureCanvas");
-    const ctx = canvas.getContext("2d");
-    let drawing = false;
+      rows.forEach((row, idx) => {
+        const cells = row.querySelectorAll("td");
+        const name = cells[0]?.innerText;
+        const qty = cells[1]?.querySelector("select").value;
+        const mcn = [...cells[2]?.querySelectorAll("input")].map(el => el.value).join(", ");
+        const bat = [...cells[3]?.querySelectorAll("input")].map(el => el.value).join(", ");
+        const pump = [...cells[4]?.querySelectorAll("input")].map(el => el.value).join(", ");
+        doc.text(`${idx + 1}. ${name} | MCN: ${mcn} | Battery: ${bat} | Pump: ${pump}`, 10, y);
+        y += 10;
+      });
 
-    canvas.addEventListener("mousedown", () => drawing = true);
-    canvas.addEventListener("mouseup", () => {
-      drawing = false;
-      ctx.beginPath();
+      doc.save("equipment-issue.pdf");
     });
-    canvas.addEventListener("mouseout", () => drawing = false);
-    canvas.addEventListener("mousemove", draw);
-
-    function draw(e) {
-      if (!drawing) return;
-      const rect = canvas.getBoundingClientRect();
-      ctx.lineWidth = 2;
-      ctx.lineCap = "round";
-      ctx.strokeStyle = "black";
-      ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-    }
   </script>
 </body>
 </html>
