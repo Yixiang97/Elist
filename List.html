@@ -327,21 +327,42 @@ sigCell.innerHTML = hasSig
  }
  
  // PDF export
- function exportToPDF() {
-  const element = document.getElementById("pdfContent");
+ // Clone the content to avoid export interference
+  const clone = original.cloneNode(true);
+  clone.style.backgroundColor = "#1e1e1e";
+  clone.style.color = "#fff";
 
-  // Ensure all images (e.g., signatures) are fully loaded
-  const images = element.querySelectorAll("img");
-  const imagePromises = Array.from(images).map(img => {
-    return new Promise(resolve => {
-      if (img.complete) resolve(); // already loaded
+  // Create a temporary container
+  const container = document.createElement("div");
+  container.style.position = "absolute";
+  container.style.left = "-9999px";
+  container.appendChild(clone);
+  document.body.appendChild(container);
+
+  // Wait for all images (like signatures) to load
+  const images = clone.querySelectorAll("img");
+  const imgPromises = Array.from(images).map(img =>
+    new Promise(resolve => {
+      if (img.complete) resolve();
       else {
-        img.onload = resolve;
-        img.onerror = resolve;
+        img.onload = img.onerror = resolve;
       }
+    })
+  );
+
+  Promise.all(imgPromises).then(() => {
+    html2pdf().from(clone).set({
+      margin: 0.3,
+      filename: 'equipment-issuance.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    }).save().then(() => {
+      // Clean up temp DOM after export
+      document.body.removeChild(container);
     });
   });
-
+}
   // Wait for all images before generating the PDF
   Promise.all(imagePromises).then(() => {
     html2pdf().from(element).set({
@@ -684,6 +705,7 @@ sigCell.innerHTML = hasSig
       issuedBtn.title = "Click to make amendments";
       issuedBtn.setAttribute("onclick", `toggleIssued(${rowIdx}, false)`);
       issuedBtn.className = "red";
+     logAction(`Marked as Issued: ${name}`);
     } else {
       rowInputs.forEach(input => input.disabled = false);
       row.classList.remove("locked-row");
@@ -703,16 +725,27 @@ sigCell.innerHTML = hasSig
   
       delete signatureData[rowIdx];
   
-      const pdfSigCell = document.querySelector(`#pdfContent #row-${rowIdx} .signature-status`);
+     const pdfSigCell = document.querySelector(`#pdfContent #row-${rowIdx} .signature-status`);
       if (pdfSigCell) {
-        pdfSigCell.innerHTML = `
-          <div class="signature-img-container" style="margin-top: 5px;"></div>
-        `;
+        pdfSigCell.innerHTML = `<div class='signature-img-container' style='margin-top: 5px;'></div>`;
       }
+
+      logAction(`Reverted to Editable: ${name}`);
+    }
+
+    updateStatus();
     }
   
-    updateStatus();
-  }
+   document.addEventListener("DOMContentLoaded", () => {
+    const saveBtn = document.getElementById("saveSignature");
+    if (saveBtn) {
+      saveBtn.addEventListener("click", () => {
+        const row = document.getElementById(`row-${activeRowIndex}`);
+        const name = row?.children[1]?.textContent || `Row ${activeRowIndex + 1}`;
+        logAction(`Signed: ${name}`);
+      });
+    }
+  });
   
   let activeRowIndex = null;
   const modalCanvas = document.getElementById("modalCanvas");
