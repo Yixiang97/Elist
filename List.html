@@ -98,6 +98,26 @@
        border-radius: 4px;
        margin-top: 5px;
      }
+    #pdfContent {
+  width: 100%;
+  max-width: 900px;
+  margin: auto;
+  background-color: #fff;
+  color: #000;
+  padding: 20px;
+}
+
+#pdfContent table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#pdfContent th, #pdfContent td {
+  border: 1px solid #000;
+  padding: 8px;
+  text-align: center;
+}
+
    </style>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
  </head>
@@ -205,15 +225,15 @@
      </div>
    `;
  
-   const pdfSigCell = document.querySelector(`#pdfContent #row-${activeRowIndex} .signature-status`);
-   if (pdfSigCell) {
-     pdfSigCell.innerHTML = `
-       ✅ Signed
-       <div class='signature-img-container' style='margin-top: 5px;'>
-         <img src='${sigImg}' width='150'/>
-       </div>
-     `;
-   }
+  const pdfSigCell = document.querySelector(`#pdfContent #row-${activeRowIndex} .signature-status`);
+if (pdfSigCell) {
+  pdfSigCell.innerHTML = `
+    ✅ Signed
+    <div class='signature-img-container' style='margin-top: 5px;'>
+      <img src='${sigImg}' width='150'/>
+    </div>
+  `;
+}
  
    closeModal();
    checkRowFilled(activeRowIndex);
@@ -286,11 +306,15 @@
      btn.setAttribute("onclick", `toggleIssued(${rowIdx}, true)`);
  
      delete signatureData[rowIdx];
-     sigCell.innerHTML = `
-       <button class="green" onclick="openSignatureModal(${rowIdx})">Sign</button>
-       <div class="signature-img-container" style="margin-top: 5px;"></div>
-     `;
- 
+    const hasSig = !!signatureData[rowIdx];
+sigCell.innerHTML = hasSig
+  ? `✅ Signed
+      <div class='signature-img-container' style='margin-top: 5px;'>
+        <img src='${signatureData[rowIdx]}' width='150'/>
+      </div>`
+  : `<button class="green" onclick="openSignatureModal(${rowIdx})">Sign</button>
+     <div class="signature-img-container" style="margin-top: 5px;"></div>`;
+
      const pdfSigCell = document.querySelector(`#pdfContent #row-${rowIdx} .signature-status`);
      if (pdfSigCell) pdfSigCell.innerHTML = "<div class='signature-img-container' style='margin-top:5px;'></div>";
    }
