@@ -797,32 +797,29 @@
   }
   
   
-  function updateStatus() {
-    const issuedStatus = document.getElementById("issuedStatus");
-    const remainingCount = document.getElementById("remainingCount");
-    const exportBtn = document.getElementById("exportBtn");
-  
-    let issued = 0;
-    let allIssued = true;
-    let allSigned = true;
-  
-    issuedStatus.innerHTML = "";
-    selectedNames.forEach((name, idx) => {
-      const btn = document.getElementById(`issuedBtn-${idx}`);
-      const sigImg = signatureData[idx];
-      const isIssued = btn && btn.textContent === "Not Issued";
-  
-      if (isIssued) issued++;
-      else allIssued = false;
-  
-      if (!sigImg) allSigned = false;
-  
-      issuedStatus.innerHTML += `<p>${name}: ${isIssued ? "✅ Issued" : "❌ Not Issued"}</p>`;
-    });
-  
-    remainingCount.textContent = `Remaining: ${selectedNames.length - issued}`;
-    exportBtn.disabled = !(allIssued && allSigned);
-  }
+function updateStatus() {
+  const issuedStatus = document.getElementById("issuedStatus");
+  const remainingCount = document.getElementById("remainingCount");
+  const exportBtn = document.getElementById("exportBtn");
+
+  let issued = 0;
+  issuedStatus.innerHTML = "";
+
+  selectedNames.forEach((name, idx) => {
+    const btn = document.getElementById(`issuedBtn-${idx}`);
+    const signed = !!signatureData[idx];
+    const isIssued = btn && btn.textContent === "✏️ Edit";
+
+    if (isIssued && signed) {
+      issued++;
+    }
+
+    issuedStatus.innerHTML += `<p>${name}: ${isIssued && signed ? "✅ Issued" : "❌ Not Issued"}</p>`;
+  });
+
+  remainingCount.textContent = `Remaining: ${selectedNames.length - issued}`;
+  exportBtn.disabled = issued !== selectedNames.length;
+}
   
   function renderTable() {
     if (!selectedNames.length) {
