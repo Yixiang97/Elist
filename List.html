@@ -114,6 +114,14 @@
     background-color: #2a2a2a !important;
     color: #fff !important;
   }
+    #timestampFooter {
+    text-align: right;
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 30px;
+    border-top: 1px solid #444;
+    padding-top: 10px;
+  }
    </style>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
  </head>
@@ -320,15 +328,32 @@ sigCell.innerHTML = hasSig
  
  // PDF export
  function exportToPDF() {
-   html2pdf().from(document.getElementById("pdfContent")).set({
-     margin: 0.3,
-     filename: 'equipment-issuance.pdf',
-     image: { type: 'jpeg', quality: 0.98 },
-     html2canvas: { scale: 2 },
-     jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-   }).save();
- }
- 
+  const element = document.getElementById("pdfContent");
+
+  // Ensure all images (e.g., signatures) are fully loaded
+  const images = element.querySelectorAll("img");
+  const imagePromises = Array.from(images).map(img => {
+    return new Promise(resolve => {
+      if (img.complete) resolve(); // already loaded
+      else {
+        img.onload = resolve;
+        img.onerror = resolve;
+      }
+    });
+  });
+
+  // Wait for all images before generating the PDF
+  Promise.all(imagePromises).then(() => {
+    html2pdf().from(element).set({
+      margin: 0.3,
+      filename: 'equipment-issuance.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    }).save();
+  });
+}
+
  // Table rendering
  function renderTable() {
    const pdfTableBody = document.getElementById("pdfTableBody");
@@ -514,6 +539,13 @@ sigCell.innerHTML = hasSig
         background-color: #2a2a2a !important;
         opacity: 0.6;
       }
+      #actionLog {
+    margin-top: 30px;
+    font-size: 12px;
+    color: #ccc;
+    border-top: 1px dashed #444;
+    padding-top: 10px;
+  }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   </head>
@@ -553,6 +585,12 @@ sigCell.innerHTML = hasSig
     <button onclick="closeModal()" class="red">Cancel</button>
   </div>
   <div id="overlay"></div>
+
+   <div id="pdfContent">
+  <!-- your existing content... -->
+  <div id="timestampFooter"></div>
+  <div id="actionLog"></div>
+</div>
   
   <script>
     function updatePdfFields(rowIdx) {
@@ -890,7 +928,18 @@ function updateStatus() {
   
     updateStatus();
   }
-  
+  function logAction(action) {
+    const log = document.getElementById("actionLog");
+    const time = new Date().toLocaleString('en-SG', {
+      dateStyle: 'short',
+      timeStyle: 'medium',
+      hour12: false
+    });
+    const entry = document.createElement("div");
+    entry.textContent = `[${time}] ${action}`;
+    log.appendChild(entry);
+  }
+   
    window.addEventListener("DOMContentLoaded", () => {
     const summaries = document.querySelectorAll("#pdfContent");
     if (summaries.length > 1) {
@@ -898,6 +947,20 @@ function updateStatus() {
         summaries[i].style.display = "none";
       }
     }
+  });
+    const now = new Date();
+    const formatted = now.toLocaleString('en-SG', {
+      dateStyle: 'full',
+      timeStyle: 'short',
+      hour12: false
+    });
+    const timestampFooter = document.getElementById("timestampFooter");
+    if (timestampFooter) {
+      timestampFooter.textContent = `Generated on: ${formatted}`;
+    }
+
+    // Example logs (replace with actual triggers in your app)
+    logAction("Page loaded");
   });
    
   renderTable();
