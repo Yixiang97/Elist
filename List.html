@@ -212,18 +212,14 @@
     signatureData[activeRowIndex] = sigImg;
  
     const row = document.getElementById(`row-${activeRowIndex}`);
-    row.querySelector(".signature-status").innerHTML = `
-      ✅ Signed
-      <div class='signature-img-container'><img src='${sigImg}' width='150'/></div>
-    `;
     const sigCell = row.querySelector(".signature-status");
-    sigCell.innerHTML = `
-      ✅ Signed
-      <div class='signature-img-container' style='margin-top: 5px;'>
-        <img src='${sigImg}' width='150'/>
-      </div>
-    `;
- 
+     sigCell.innerHTML = `
+        ✅ Signed
+        <div class='signature-img-container' style='margin-top: 5px;'>
+          <img src='${sigImg}' width='150'/>
+        </div>
+      `;
+   
     const pdfSigCell = document.querySelector(`#pdfContent #row-${activeRowIndex} .signature-status`);
     if (pdfSigCell) {
       pdfSigCell.innerHTML = `
@@ -233,15 +229,6 @@
         </div>
       `;
     }
-   const pdfSigCell = document.querySelector(`#pdfContent #row-${activeRowIndex} .signature-status`);
- if (pdfSigCell) {
-   pdfSigCell.innerHTML = `
-     ✅ Signed
-     <div class='signature-img-container' style='margin-top: 5px;'>
-       <img src='${sigImg}' width='150'/>
-     </div>
-   `;
- }
  
     closeModal();
     checkRowFilled(activeRowIndex);
@@ -293,50 +280,49 @@
   }
  
   // Toggle Issue/Edit
-  function toggleIssued(rowIdx, isIssued) {
-    const row = document.getElementById(`row-${rowIdx}`);
-    const inputs = document.querySelectorAll(`[data-row="${rowIdx}"]`);
-    const btn = document.getElementById(`issuedBtn-${rowIdx}`);
-    const sigCell = row.querySelector(".signature-status");
- 
-    if (isIssued) {
-      inputs.forEach(i => i.disabled = true);
-      row.classList.add("locked-row");
-      btn.textContent = "✏️ Edit";
-      btn.className = "red";
-      btn.setAttribute("onclick", `toggleIssued(${rowIdx}, false)`);
-    } else {
-      inputs.forEach(i => i.disabled = false);
-      row.classList.remove("locked-row");
-      btn.textContent = "Issued";
-      btn.className = "green";
-      btn.disabled = true;
-      btn.setAttribute("onclick", `toggleIssued(${rowIdx}, true)`);
- 
-      delete signatureData[rowIdx];
-      sigCell.innerHTML = `
-        <button class="green" onclick="openSignatureModal(${rowIdx})">Sign</button>
-        <div class="signature-img-container" style="margin-top: 5px;"></div>
-      `;
-  
-     const hasSig = !!signatureData[rowIdx];
- sigCell.innerHTML = hasSig
-   ? `✅ Signed
-       <div class='signature-img-container' style='margin-top: 5px;'>
-         <img src='${signatureData[rowIdx]}' width='150'/>
-       </div>`
-   : `<button class="green" onclick="openSignatureModal(${rowIdx})">Sign</button>
-      <div class="signature-img-container" style="margin-top: 5px;"></div>`;
- 
-      const pdfSigCell = document.querySelector(`#pdfContent #row-${rowIdx} .signature-status`);
-      if (pdfSigCell) pdfSigCell.innerHTML = "<div class='signature-img-container' style='margin-top:5px;'></div>";
+function toggleIssued(rowIdx, isIssued) {
+  const row = document.getElementById(`row-${rowIdx}`);
+  const inputs = document.querySelectorAll(`[data-row="${rowIdx}"]`);
+  const btn = document.getElementById(`issuedBtn-${rowIdx}`);
+  const sigCell = row.querySelector(".signature-status");
+
+  if (isIssued) {
+    inputs.forEach(i => i.disabled = true);
+    row.classList.add("locked-row");
+    btn.textContent = "✏️ Edit";
+    btn.className = "red";
+    btn.setAttribute("onclick", `toggleIssued(${rowIdx}, false)`);
+  } else {
+    inputs.forEach(i => i.disabled = false);
+    row.classList.remove("locked-row");
+    btn.textContent = "Issued";
+    btn.className = "green";
+    btn.disabled = true;
+    btn.setAttribute("onclick", `toggleIssued(${rowIdx}, true)`);
+
+    // Clear signature
+    delete signatureData[rowIdx];
+
+    // Restore Sign button
+    sigCell.innerHTML = `
+      <button class="green" onclick="openSignatureModal(${rowIdx})">Sign</button>
+      <div class="signature-img-container" style="margin-top: 5px;"></div>
+    `;
+
+    // Reset PDF signature cell
+    const pdfSigCell = document.querySelector(`#pdf-row-${rowIdx} .signature-status`);
+    if (pdfSigCell) {
+      pdfSigCell.innerHTML = "<div class='signature-img-container' style='margin-top:5px;'></div>";
     }
- 
-    updateStatus();
   }
+
+  updateStatus();
+}
+
  
   // PDF export
-  function exportToPDF() {
+function exportToPDF() {
+  setTimeout(() => {
     html2pdf().from(document.getElementById("pdfContent")).set({
       margin: 0.3,
       filename: 'equipment-issuance.pdf',
@@ -344,7 +330,9 @@
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
     }).save();
-  }
+  }, 200); // allow DOM to settle
+}
+
  
   // Table rendering
   function renderTable() {
