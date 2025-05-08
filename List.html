@@ -364,7 +364,7 @@ function exportToPDF() {
       margin: 0.3,
       filename: 'equipment-issuance.pdf',
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 0.8 },
+      html2canvas: { scale: 4 },
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
     }).save();
   }, 200); // allow DOM to settle
