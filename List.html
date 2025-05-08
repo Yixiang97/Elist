@@ -166,9 +166,9 @@ button {
           <tr>
             <th>No.</th>
             <th>Name</th>
-            <th>MCN (Qty)</th>
-            <th>Battery</th>
-            <th>Pump Mic</th>
+            <th>Box (Qty)</th>
+            <th>Tissue</th>
+            <th>Paper</th>
             <th>Status</th>
             <th>Signature</th>
           </tr>
@@ -179,7 +179,7 @@ button {
       <table style="display: none;">
         <thead>
           <tr>
-            <th>No.</th><th>Name</th><th>MCN (Qty)</th><th>Battery</th><th>Pump Mic</th><th>Status</th><th>Signature</th>
+            <th>No.</th><th>Name</th><th>Box (Qty)</th><th>Tissue</th><th>Paper</th><th>Status</th><th>Signature</th>
           </tr>
         </thead>
         <tbody id="pdfTableBody"></tbody>
@@ -274,12 +274,12 @@ button {
  
   // PDF field updater
   function updatePdfFields(rowIdx) {
-    const mcn = [...document.querySelectorAll(`[data-row="${rowIdx}"][data-type="mcn"]`)].map(i => i.value).join(', ');
-    const battery = [...document.querySelectorAll(`[data-row="${rowIdx}"][data-type="battery"]`)].map(i => i.value).join(', ');
-    const pump = [...document.querySelectorAll(`[data-row="${rowIdx}"][data-type="pump"]`)].map(i => i.value).join(', ');
-    document.getElementById(`pdf-mcn-${rowIdx}`).textContent = mcn;
-    document.getElementById(`pdf-battery-${rowIdx}`).textContent = battery;
-    document.getElementById(`pdf-pump-${rowIdx}`).textContent = pump;
+    const Box = [...document.querySelectorAll(`[data-row="${rowIdx}"][data-type="mcn"]`)].map(i => i.value).join(', ');
+    const Tissue = [...document.querySelectorAll(`[data-row="${rowIdx}"][data-type="battery"]`)].map(i => i.value).join(', ');
+    const Paper = [...document.querySelectorAll(`[data-row="${rowIdx}"][data-type="pump"]`)].map(i => i.value).join(', ');
+    document.getElementById(`pdf-Box-${rowIdx}`).textContent = Box;
+    document.getElementById(`pdf-Tissue-${rowIdx}`).textContent = Tissue;
+    document.getElementById(`pdf-Paper-${rowIdx}`).textContent = Paper;
   }
  
   // Input Fields
@@ -381,21 +381,21 @@ function exportToPDF() {
       const row = document.createElement("tr");
       row.id = `row-${idx}`;
  
-      const mcnCell = document.createElement("td");
-      const batteryCell = document.createElement("td");
-      const pumpCell = document.createElement("td");
+      const BoxCell = document.createElement("td");
+      const TissueCell = document.createElement("td");
+      const PaperCell = document.createElement("td");
  
       const select = document.createElement("select");
       select.innerHTML = `<option value="0">0</option><option value="1">1</option><option value="2">2</option>`;
       select.addEventListener("change", function () {
         const count = +this.value;
-        mcnCell.innerHTML = "";
-        batteryCell.innerHTML = "";
-        pumpCell.innerHTML = "";
+        BoxCell.innerHTML = "";
+        TissueCell.innerHTML = "";
+        PaperCell.innerHTML = "";
         if (count > 0) {
-          mcnCell.appendChild(createInputBoxes(count, idx, "mcn"));
-          batteryCell.appendChild(createInputBoxes(count, idx, "battery"));
-          pumpCell.appendChild(createInputBoxes(count, idx, "pump"));
+          BoxCell.appendChild(createInputBoxes(count, idx, "mcn"));
+          TissueCell.appendChild(createInputBoxes(count, idx, "battery"));
+          PaperCell.appendChild(createInputBoxes(count, idx, "pump"));
         }
       });
       mcnCell.appendChild(select);
