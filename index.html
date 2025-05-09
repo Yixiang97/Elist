@@ -2,464 +2,209 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Equipment Issue Page</title>
+  <title>Elist Manning</title>
   <style>
-     body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #121212;
-  color: #f5f5f5;
-  padding: 40px;
-  text-align: center;
-}
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      padding: 40px;
+      text-align: center;
+    }
 
-h2 {
-  font-size: 28px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  color: #f5f5f5;
-}
+    h2 {
+      margin-bottom: 20px;
+      font-size: 28px;
+    }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
-  background-color: #1e1e1e;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
-}
+    input[type="text"] {
+      padding: 10px;
+      width: 250px;
+      border: none;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      background-color: #1e1e1e;
+      color: #ffffff;
+    }
 
-th, td {
-  border: 1px solid #333;
-  padding: 12px;
-  text-align: center;
-  vertical-align: middle;
-}
+    button {
+      padding: 10px 16px;
+      margin: 8px;
+      border: none;
+      border-radius: 6px;
+      background-color: #2e7d32;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
 
-th {
-  background-color: #2c2c2c;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  color: #e0e0e0;
-  font-weight: bold;
-}
+    button:hover {
+      background-color: #388e3c;
+    }
 
-td {
-  background-color: #1e1e1e;
-}
+    .table-container {
+      width: 60%;
+      max-height: 300px;
+      margin: 20px auto;
+      overflow-y: auto;
+      background-color: #1e1e1e;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
 
-input[type="text"], select {
-  padding: 6px;
-  background-color: #f5f5f5;
-  border: 1px solid #555;
-  color: #000000;
-  border-radius: 4px;
-  margin: 2px;
-  width: 60px;
-}
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: white;
+    }
 
-button {
-  padding: 6px 12px;
-  font-weight: 600;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
-}
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #333;
+    }
 
-.green {
-  background-color: #2e7d32;
-  color: white;
-}
+    th {
+      background-color: #2c2c2c;
+      position: sticky;
+      top: 0;
+    }
 
-.green:hover {
-  background-color: #388e3c;
-}
+    .tick {
+      cursor: pointer;
+      font-size: 18px;
+    }
 
-.red {
-  background-color: #c62828;
-  color: white;
-}
-
-.red:hover {
-  background-color: #d32f2f;
-}
-
-.status-box {
-  margin-top: 20px;
-  text-align: left;
-}
-
-#signatureModal {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #222;
-  padding: 20px;
-  border-radius: 8px;
-  z-index: 1000;
-  box-shadow: 0 0 20px #000;
-  color: white;
-  text-align: center;
-  max-width: 400px;
-}
-
-#overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 999;
-}
-
-.locked-row {
-  background-color: #2a2a2a !important;
-  opacity: 0.6;
-}
-
-.signature-img-container img {
-  border: 1px solid #555;
-  border-radius: 4px;
-  margin-top: 5px;
-  max-width: 100px;
-}
-
-#pdfContent {
-  font-family: 'Segoe UI', Tahoma, sans-serif;
-  max-width: 800px;
-  margin: auto;
-  background-color: #ffffff;
-  color: #000;
-  padding: 20px;
-  border-radius: 4px;
-}
-
-#pdfContent table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-#pdfContent th,
-#pdfContent td {
-  border: 1px solid #aaa;
-  padding: 8px;
-  text-align: center;
-  background-color: #fdfdfd;
-  color: #000;
-}
-
+    ::placeholder {
+      color: #aaa;
+    }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-    <div id="pdfContent">
-      <h2>Equipment Issuance Summary</h2>
-      <table id="issueTable">
-        <thead>
-          <tr>
-            <th>No.</th>
-            <th>Name</th>
-            <th>MCN (Qty)</th>
-            <th>Battery</th>
-            <th>Pump Mic</th>
-            <th>Status</th>
-            <th>Signature</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-       <!-- ✅ Hidden table for PDF export -->
-      <table style="display: none;">
-        <thead>
-          <tr>
-            <th>No.</th><th>Name</th><th>MCN (Qty)</th><th>Battery</th><th>Pump Mic</th><th>Status</th><th>Signature</th>
-          </tr>
-        </thead>
-        <tbody id="pdfTableBody"></tbody>
-      </table>
-      <div class="status-box" id="statusBox">
-        <h3>Issuance Status</h3>
-        <div id="issuedStatus"></div>
-        <p id="remainingCount"></p>
-      </div>
-    </div>
-    <button id="exportBtn" class="green" onclick="exportToPDF()" disabled>Export to PDF</button>
-    <div id="signatureModal">
-      <h3>Sign Here</h3>
-      <canvas id="modalCanvas" width="300" height="100" style="background:#fff; border:1px solid #ccc;"></canvas><br>
-      <button id="saveSignature" class="green">Save</button>
-      <button onclick="closeModal()" class="red">Cancel</button>
-    </div>
-    <div id="overlay"></div>
+
+  <h2>Elist Manning</h2>
+
+  <input type="text" id="searchInput" placeholder="Search name..." oninput="filterList()"><br>
+
+  <button onclick="addName()">Add Name (Temp)</button>
+  <button onclick="addPermanentName()">Add Name Permanently</button>
+  <button onclick="refreshList()">Refresh</button>
+  <button onclick="toggleAll()">Toggle All</button>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Selected</th>
+        </tr>
+      </thead>
+      <tbody id="nameList"></tbody>
+    </table>
+  </div>
+
+  <button onclick="submitPage()">Submit</button>
+
   <script>
-  localStorage.setItem("selectedNames", JSON.stringify([...new Set(JSON.parse(localStorage.getItem("selectedNames") || "[]"))]));
-  const rawNames = JSON.parse(localStorage.getItem("selectedNames") || "[]");
-  const selectedNames = [...new Set(rawNames)];
+    const defaultNames = [
+      "LONG JIEH LIANG", "MUHAMAD RIZAL BIN RIDWAN", "RAYMOND NG TECK MIN",
+      "NOOR HALEEM BIN MOHD HANIFA", "LOI ENG HAU", "MUHAMMAD AMLI BIN MOHAMAD ALI",
+      "AHMAD ANAS BIN MOHD MOHAIYUDDIN", "CLARENCE CHIEW WEI CHONG", "MUHAMMAD RIZUAN BIN MOHIDIN",
+      "MUHAMMAD KHAIRUL ANUAR BIN ABDUL RAHMAN", "CHAI WEE YEONG", "MUHAMMAD SYAFIQ BIN SULAIMAN",
+      "LIM JIAN DA", "MUHAMMAD LUQMAN NUL HAKIM", "MARCUS WONG LIANG WEI", "MUHAMMAD SHAZWANDI BIN SURIMAN",
+      "ABDULLAH KHAN BIN MOHAMED MURTUJAH", "MUHAMMAD HAIKAL BIN RAMLAN", "MOHAMAD SOLIHIN BIN MOHAMAD YUSRI",
+      "MUHAMMAD HAZIQ BIN JASMAN", "MUHAMMAD NURHADI BIN RAMLEE", "MOHAMAD ILYAS BIN MOHAMAD ZAIDI",
+      "SNG XIANG MING", "NG JIA SHENG", "ARIF ABDULLAH BIN ROSLAN", "LIM WEI LIANG", "R THAMIL MAGAN",
+      "MUHAMMAD ADLIFIKRI BIN ADANAN", "MOHAMMAD DANIAL BIN NOORALAM", "LEE YI XIANG", "SIM JUN TING",
+      "MUHAMMAD SYAFIYUDDIN BIN YUSRAN", "MOHAMMAD ARIFIN BIN MOHAMED SALLEH", "ADIB AFHAN BIN MOHAMAD SUHAIMI",
+      "MOHAMED HAFIS MARICAN BIN ASANA MARICAN", "MOHAMAD ILHAM ZIKRY BIN MOHAMAD ISKANDAR", "GOH ZHI PENG",
+      "MUHAMMED SHAFIQ BIN NAINAM", "MUHAMMAD AQASHA BIN SYED THAHAR", "ZIKRI IEZZAT BIN ZAKIR MOHAMMED",
+      "MUHAMMAD AQASYA BIN YUSNIZAM", "MUHAMMAD SYAFIQ BIN RUDYWAN", "MUHAMMAD ZAIYANI HIDIR BIN ZAINAL",
+      "DAIYAN BIN EDDIE", "JUSTUS HUAN REN JIE", "DAYAN TAN JIE AN"
+    ];
+
+    let currentNames = loadNames();
+    let allTicked = false;
+
+    function renderList(names) {
+      const nameList = document.getElementById("nameList");
+      nameList.innerHTML = "";
+      names.forEach(name => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${name}</td>
+          <td class="tick" onclick="toggleTick(this)">❌</td>
+        `;
+        nameList.appendChild(row);
+      });
+    }
+
+    function toggleTick(cell) {
+      cell.textContent = cell.textContent === "❌" ? "✅" : "❌";
+    }
+
+    function addName() {
+      const name = prompt("Enter a temporary name:");
+      if (name) {
+        currentNames.push(name);
+        renderList(currentNames);
+      }
+    }
+
+    function addPermanentName() {
+      const name = prompt("Enter a name to save permanently:");
+      if (name) {
+        let stored = JSON.parse(localStorage.getItem("elist") || "[]");
+        if (!stored.includes(name)) stored.push(name);
+        localStorage.setItem("elist", JSON.stringify(stored));
+        currentNames = loadNames();
+        renderList(currentNames);
+      }
+    }
+
+    function refreshList() {
+      currentNames = loadNames();
+      document.getElementById("searchInput").value = "";
+      renderList(currentNames);
+    }
+
+    function filterList() {
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const filtered = currentNames.filter(name => name.toLowerCase().includes(search));
+      renderList(filtered);
+    }
+
+    function toggleAll() {
+      const cells = document.querySelectorAll(".tick");
+      allTicked = !allTicked;
+      cells.forEach(cell => cell.textContent = allTicked ? "✅" : "❌");
+    }
+
+    function submitPage() {
+    const name = document.getElementById("nameSelect").value;
+    localStorage.setItem("selectedName", name);  // or use sessionStorage
+    window.location.href = "List.html";
+  }
+   function submitPage() {
+  const selectedNames = [];
+  const rows = document.querySelectorAll("#nameList tr");
+  rows.forEach(row => {
+    const name = row.cells[0].textContent;
+    const tick = row.cells[1].textContent;
+    if (tick === "✅") {
+      selectedNames.push(name);
+    }
+  });
+
   localStorage.setItem("selectedNames", JSON.stringify(selectedNames));
-
-  const uniqueNames = [...new Set(selectedNames)];
-
-  const tableBody = document.getElementById("tableBody");
-  const signatureData = {};
-  let activeRowIndex = null;
-
-  const modalCanvas = document.getElementById("modalCanvas");
-  const ctx = modalCanvas.getContext("2d");
-
-  // Signature Modal
-  function openSignatureModal(rowIdx) {
-    activeRowIndex = rowIdx;
-    document.getElementById("signatureModal").style.display = "block";
-    document.getElementById("overlay").style.display = "block";
-    ctx.clearRect(0, 0, modalCanvas.width, modalCanvas.height);
-  }
-
-  function closeModal() {
-    document.getElementById("signatureModal").style.display = "none";
-    document.getElementById("overlay").style.display = "none";
-    activeRowIndex = null;
-  }
-
-  // Draw Signature
-  let drawing = false;
-  modalCanvas.addEventListener("mousedown", () => drawing = true);
-  modalCanvas.addEventListener("mouseup", () => drawing = false);
-  modalCanvas.addEventListener("mouseout", () => drawing = false);
-  modalCanvas.addEventListener("mousemove", (e) => {
-    if (!drawing) return;
-    const rect = modalCanvas.getBoundingClientRect();
-    ctx.lineWidth = 2;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = "black";
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-  });
-  // Save Signature
-  document.getElementById("saveSignature").addEventListener("click", () => {
-    const sigImg = modalCanvas.toDataURL("image/png");
-    signatureData[activeRowIndex] = sigImg;
-
-    const row = document.getElementById(`row-${activeRowIndex}`);
-    const sigCell = row.querySelector(".signature-status");
-     sigCell.innerHTML = `
-        ✅ Signed
-        <div class='signature-img-container' style='margin-top: 5px;'>
-          <img src='${sigImg}' width='150'/>
-        </div>
-      `;
-
-    const pdfSigCell = document.querySelector(`#pdfContent #row-${activeRowIndex} .signature-status`);
-    if (pdfSigCell) {
-      pdfSigCell.innerHTML = `
-        ✅ Signed
-        <div class='signature-img-container' style='margin-top: 5px;'>
-          <img src='${sigImg}' width='150'/>
-        </div>
-      `;
-    }
-
-    closeModal();
-    checkRowFilled(activeRowIndex);
-    updateStatus();
-  });
-
-  // PDF field updater
-  function updatePdfFields(rowIdx) {
-    const mcn = [...document.querySelectorAll(`[data-row="${rowIdx}"][data-type="mcn"]`)].map(i => i.value).join(', ');
-    const battery = [...document.querySelectorAll(`[data-row="${rowIdx}"][data-type="battery"]`)].map(i => i.value).join(', ');
-    const pump = [...document.querySelectorAll(`[data-row="${rowIdx}"][data-type="pump"]`)].map(i => i.value).join(', ');
-    document.getElementById(`pdf-mcn-${rowIdx}`).textContent = mcn;
-    document.getElementById(`pdf-battery-${rowIdx}`).textContent = battery;
-    document.getElementById(`pdf-pump-${rowIdx}`).textContent = pump;
-  }
-
-  // Input Fields
-  function createInputBoxes(count, rowIdx, type) {
-    const container = document.createElement("div");
-    container.className = `${type}-container`;
-
-    for (let i = 0; i < count; i++) {
-      const input = document.createElement("input");
-      input.type = "text";
-      input.placeholder = `Scan ${type} ${i + 1}`;
-      input.dataset.row = rowIdx;
-      input.dataset.type = type;
-      input.autocomplete = "off";
-      input.pattern = type === "mcn" ? "\\d{7}" : "KH\\d{3}";
-
-      input.addEventListener("input", () => {
-        checkRowFilled(rowIdx);
-        updatePdfFields(rowIdx);
-      });
-
-      container.appendChild(input);
-    }
-
-    return container;
-  }
-
-  // Enable Issued if inputs + signature exist
-  function checkRowFilled(rowIdx) {
-    const inputs = document.querySelectorAll(`[data-row="${rowIdx}"]`);
-    const issuedBtn = document.getElementById(`issuedBtn-${rowIdx}`);
-    const allFilled = [...inputs].every(input => input.value.trim());
-    const isSigned = !!signatureData[rowIdx];
-    issuedBtn.disabled = !(allFilled && isSigned);
-  }
-
-  // Toggle Issue/Edit
-function toggleIssued(rowIdx, isIssued) {
-  const row = document.getElementById(`row-${rowIdx}`);
-  const inputs = document.querySelectorAll(`[data-row="${rowIdx}"]`);
-  const btn = document.getElementById(`issuedBtn-${rowIdx}`);
-  const sigCell = row.querySelector(".signature-status");
-
-  if (isIssued) {
-    inputs.forEach(i => i.disabled = true);
-    row.classList.add("locked-row");
-    btn.textContent = "✏️ Edit";
-    btn.className = "red";
-    btn.setAttribute("onclick", `toggleIssued(${rowIdx}, false)`);
-  } else {
-    inputs.forEach(i => i.disabled = false);
-    row.classList.remove("locked-row");
-    btn.textContent = "Issued";
-    btn.className = "green";
-    btn.disabled = true;
-    btn.setAttribute("onclick", `toggleIssued(${rowIdx}, true)`);
-
-    // Clear signature
-    delete signatureData[rowIdx];
-
-    // Restore Sign button
-    sigCell.innerHTML = `
-      <button class="green" onclick="openSignatureModal(${rowIdx})">Sign</button>
-      <div class="signature-img-container" style="margin-top: 5px;"></div>
-    `;
-
-    // Reset PDF signature cell
-    const pdfSigCell = document.querySelector(`#pdf-row-${rowIdx} .signature-status`);
-    if (pdfSigCell) {
-      pdfSigCell.innerHTML = "<div class='signature-img-container' style='margin-top:5px;'></div>";
-    }
-  }
-
-  updateStatus();
+  window.location.href = "List.html";
 }
 
+    function loadNames() {
+      const stored = JSON.parse(localStorage.getItem("elist") || "[]");
+      return [...defaultNames, ...stored.filter(name => !defaultNames.includes(name))];
+    }
 
-  // PDF export
-function exportToPDF() {
-  setTimeout(() => {
-    html2pdf().from(document.getElementById("pdfContent")).set({
-      margin: 0.3,
-      filename: 'equipment-issuance.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 0.8 },
-      html2canvas: { scale: 4 },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    }).save();
-  }, 200); // allow DOM to settle
-}
-
-
-  // Table rendering
-  function renderTable() {
-    const pdfTableBody = document.getElementById("pdfTableBody");
-    tableBody.innerHTML = "";
-    pdfTableBody.innerHTML = "";
-
-    uniqueNames.forEach((name, idx) => {
-      const row = document.createElement("tr");
-      row.id = `row-${idx}`;
-
-      const mcnCell = document.createElement("td");
-      const batteryCell = document.createElement("td");
-      const pumpCell = document.createElement("td");
-
-      const select = document.createElement("select");
-      select.innerHTML = `<option value="0">0</option><option value="1">1</option><option value="2">2</option>`;
-      select.addEventListener("change", function () {
-        const count = +this.value;
-        mcnCell.innerHTML = "";
-        batteryCell.innerHTML = "";
-        pumpCell.innerHTML = "";
-        if (count > 0) {
-          mcnCell.appendChild(createInputBoxes(count, idx, "mcn"));
-          batteryCell.appendChild(createInputBoxes(count, idx, "battery"));
-          pumpCell.appendChild(createInputBoxes(count, idx, "pump"));
-        }
-      });
-      mcnCell.appendChild(select);
-
-      row.innerHTML = `
-        <td>${idx + 1}</td>
-        <td>${name}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td><button id="issuedBtn-${idx}" class="green" onclick="toggleIssued(${idx}, true)" disabled>Issued</button></td>
-        <td class="signature-status">
-          <button class="green" onclick="openSignatureModal(${idx})">Sign</button>
-          <div class="signature-img-container" style="margin-top: 5px;"></div>
-        </td>
-      `;
-      row.children[2].replaceWith(mcnCell);
-      row.children[3].replaceWith(batteryCell);
-      row.children[4].replaceWith(pumpCell);
-      tableBody.appendChild(row);
-
-      // PDF row generation
-      const pdfRow = document.createElement("tr");
-      pdfRow.id = `pdf-row-${idx}`;
-      pdfRow.innerHTML = `
-        <td>${idx + 1}</td>
-        <td>${name}</td>
-        <td id="pdf-mcn-${idx}"></td>
-        <td id="pdf-battery-${idx}"></td>
-        <td id="pdf-pump-${idx}"></td>
-        <td>❌ Not Issued</td>
-        <td class="signature-status"><div class="signature-img-container" style="margin-top: 5px;"></div></td>
-      `;
-      pdfTableBody.appendChild(pdfRow);
-    });
-
-    updateStatus();
-  }
-
-  // Status update
-  function updateStatus() {
-    const issuedStatus = document.getElementById("issuedStatus");
-    const remainingCount = document.getElementById("remainingCount");
-    const exportBtn = document.getElementById("exportBtn");
-
-    let issued = 0, allIssued = true, allSigned = true;
-    issuedStatus.innerHTML = "";
-
-    uniqueNames.forEach((name, idx) => {
-      const btn = document.getElementById(`issuedBtn-${idx}`);
-      const signed = !!signatureData[idx];
-      const isIssued = btn && btn.textContent === "✏️ Edit";
-      if (isIssued) issued++; else allIssued = false;
-      if (!signed) allSigned = false;
-
-      issuedStatus.innerHTML += `<p>${name}: ${isIssued ? "✅ Issued" : "❌ Not Issued"}</p>`;
-    });
-
-    remainingCount.textContent = `Remaining: ${uniqueNames.length - issued}`;
-    exportBtn.disabled = !(allIssued && allSigned);
-  }
-
-  renderTable();
+    renderList(currentNames);
   </script>
 
 </body>
