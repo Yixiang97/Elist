@@ -190,8 +190,11 @@ button {
         <p id="remainingCount"></p>
       </div>
     </div>
+  
     <button id="exportBtn" class="green" onclick="exportToPDF()" disabled>Export to PDF</button>
     <div id="signatureModal">
+    <button class="green" onclick="saveAndProceedToReturn()">Proceed to Return Page</button>
+
       <h3>Sign Here</h3>
       <canvas id="modalCanvas" width="300" height="100" style="background:#fff; border:1px solid #ccc;"></canvas><br>
       <button id="saveSignature" class="green">Save</button>
@@ -460,6 +463,28 @@ function exportToPDF() {
   }
 
   renderTable();
+
+function saveAndProceedToReturn() {
+  const dataToStore = {};
+
+  uniqueNames.forEach((name, idx) => {
+    const mcnInputs = document.querySelectorAll(`[data-row="${idx}"][data-type="mcn"]`);
+    const batteryInputs = document.querySelectorAll(`[data-row="${idx}"][data-type="battery"]`);
+
+    const mcnValues = [...mcnInputs].map(i => i.value.trim()).filter(Boolean);
+    const batteryValues = [...batteryInputs].map(i => i.value.trim()).filter(Boolean);
+
+    if (mcnValues.length && batteryValues.length) {
+      dataToStore[idx] = { mcn: mcnValues, battery: batteryValues };
+    }
+  });
+
+  localStorage.setItem("issuedEquipment", JSON.stringify(dataToStore));
+  alert("Issued data saved. Proceeding to Return Page.");
+  window.location.href = "return.html"; // Update the path if needed
+}
+
+
   </script>
 
 </body>
