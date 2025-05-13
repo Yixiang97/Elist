@@ -470,19 +470,27 @@ function saveAndProceedToReturn() {
   uniqueNames.forEach((name, idx) => {
     const mcnInputs = document.querySelectorAll(`[data-row="${idx}"][data-type="mcn"]`);
     const batteryInputs = document.querySelectorAll(`[data-row="${idx}"][data-type="battery"]`);
+    const pumpInputs = document.querySelectorAll(`[data-row="${idx}"][data-type="pump"]`);
 
     const mcnValues = [...mcnInputs].map(i => i.value.trim()).filter(Boolean);
     const batteryValues = [...batteryInputs].map(i => i.value.trim()).filter(Boolean);
+    const pumpValues = [...pumpInputs].map(i => i.value.trim()).filter(Boolean);
 
     if (mcnValues.length && batteryValues.length) {
-      dataToStore[idx] = { mcn: mcnValues, battery: batteryValues };
+      dataToStore[idx] = {
+        name: name,
+        mcn: mcnValues,
+        battery: batteryValues,
+        pump: pumpValues
+      };
     }
   });
 
   localStorage.setItem("issuedEquipment", JSON.stringify(dataToStore));
   alert("Issued data saved. Proceeding to Return Page.");
-  window.location.href = "return.html"; // Update the path if needed
+  window.location.href = "return.html";
 }
+
 
 
   </script>
