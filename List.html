@@ -192,9 +192,9 @@ button {
     </div>
   
     <button id="exportBtn" class="green" onclick="exportToPDF()" disabled>Export to PDF</button>
-    <div id="signatureModal">
-    <button class="green" onclick="saveAndProceedToReturn()">Proceed to Return Page</button>
-
+  <button class="green" onclick="saveAndProceedToReturn()">Proceed to Return Page</button>  
+  
+  <div id="signatureModal">
       <h3>Sign Here</h3>
       <canvas id="modalCanvas" width="300" height="100" style="background:#fff; border:1px solid #ccc;"></canvas><br>
       <button id="saveSignature" class="green">Save</button>
@@ -488,7 +488,7 @@ function saveAndProceedToReturn() {
 
   localStorage.setItem("issuedEquipment", JSON.stringify(dataToStore));
   alert("Issued data saved. Proceeding to Return Page.");
-  window.location.href = "return.html";
+  window.location.href = "Return.html";
 }
 
 
